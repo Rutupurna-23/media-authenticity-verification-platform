@@ -36,9 +36,15 @@ export class MediaStorageService {
     if (!fileName || fileName.trim() === '') {
       return 'unnamed_media_file';
     }
-    // Strip directory traversal components
-    const base = path.basename(fileName.trim());
-    // Replace non-alphanumeric (except dot, dash, underscore)
+    // Normalize both POSIX and Windows separators before extracting the basename.
+    // This prevents platform-dependent traversal bypasses such as:
+    // ../../etc/passwd
+    // ..\..\windows\system32\cmd.exe
+    const normalized = fileName.trim().replace(/[\\/]+/g, '/');
+    const base = path.posix.basename(normalized);
+
+    // Replace non-alphanumeric characters (except dot, dash, underscore).
+    // This also guarantees that the final filename cannot contain path separators.
     const sanitized = base.replace(/[^a-zA-Z0-9._-]/g, '_');
     return sanitized || 'media_file';
   }
