@@ -98,8 +98,23 @@ export interface IKMSProvider {
  * .dev-kms-keys.json file and in memory. No private keys are stored
  * in source control or Firestore.
  */
+const GLOBAL_KMS_VAULT_KEY = '__MEDIA_AUTHENTICITY_KMS_VAULT__';
+
+const globalKmsState = globalThis as typeof globalThis & {
+  [GLOBAL_KMS_VAULT_KEY]?: Map<string, string>;
+};
+
+globalKmsState[GLOBAL_KMS_VAULT_KEY] ??= new Map<string, string>();
+
 export class NodeCryptoKMSProvider implements IKMSProvider {
-  private static privateKeyVault: Map<string, string> = new Map();
+  /**
+   * Process-global in-memory KMS vault.
+   *
+   * Using globalThis prevents separate module instances from creating
+   * separate private-key maps in test runners / bundled execution.
+   */
+  private static privateKeyVault: Map<string, string> =
+    globalKmsState[GLOBAL_KMS_VAULT_KEY]!;
 
   /**
    * Loads persistent local development keys into the in-memory vault.
