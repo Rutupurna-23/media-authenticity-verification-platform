@@ -66,4 +66,5 @@ export interface VerificationLog {
   details?: string;
   institutionName?: string;
   credentialStatus?: CredentialStatus;
+  executionDurationMs?: number;
 }

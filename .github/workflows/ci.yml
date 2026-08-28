@@ -1,0 +1,55 @@
+name: Continuous Integration (CI)
+
+on:
+  push:
+    branches: [ main, master, dev, release/* ]
+  pull_request:
+    branches: [ main, master, dev ]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate-and-test:
+    name: Build, Lint & Emulator Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20 Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Java Runtime (for Firebase Emulator Suite)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install Root Dependencies
+        run: npm ci
+
+      - name: Install Cloud Functions Dependencies
+        run: npm --prefix functions ci
+
+      - name: Run TypeScript Static Typecheck & Linting
+        run: npm run lint
+
+      - name: Build Root Web Application & Server Bundle
+        run: npm run build
+
+      - name: Compile Cloud Functions TypeScript
+        run: npm --prefix functions run build
+
+      - name: Execute Automated Regression Test Suite (Firebase Emulators)
+        run: npx firebase-tools emulators:exec --only firestore,storage "npm test"
+        env:
+          CI: true
+          NODE_ENV: test
+          FIREBASE_PROJECT_ID: media-authenticity-platform

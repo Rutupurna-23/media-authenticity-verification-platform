@@ -99,6 +99,13 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
       });
 
       if (!res.ok) {
+        if (res.status === 429) {
+          const retryAfter = res.headers.get('Retry-After') || '60';
+          throw new Error(`Upload rate limit reached. Please wait ${retryAfter} seconds before uploading more files.`);
+        }
+        if (res.status === 503) {
+          throw new Error('Storage service temporarily degraded. Please try uploading again in a few moments.');
+        }
         const err = await res.json().catch(() => ({ error: 'Upload failed' }));
         throw new Error(err.error || `Upload failed with status ${res.status}`);
       }
@@ -147,6 +154,12 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
       });
 
       if (!res.ok) {
+        if (res.status === 429) {
+          throw new Error('Signing request rate limit exceeded. Please wait before submitting more signatures.');
+        }
+        if (res.status === 503) {
+          throw new Error('KMS signing service temporarily unavailable. Please retry shortly.');
+        }
         const err = await res.json().catch(() => ({ error: 'Signing failed' }));
         throw new Error(err.error || `Signing failed with status ${res.status}`);
       }

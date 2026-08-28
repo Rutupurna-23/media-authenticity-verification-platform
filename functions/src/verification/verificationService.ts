@@ -1,6 +1,6 @@
-import { VerificationVerdict, VerificationLog, MediaRecord, Credential, Institution } from '../types.js';
+﻿import { VerificationVerdict, VerificationLog, MediaRecord, Credential, Institution } from '../types.js';
 import { kmsProvider } from '../media/kmsProvider.js';
-import { deepfakeDetector } from './modularProviders.js';
+import { deepfakeDetector, blockchainProvider } from './modularProviders.js';
 
 export interface VerifyMediaParams {
   mediaHash: string;
@@ -38,7 +38,8 @@ export class VerificationService {
     findMediaRecordByHash: (hash: string) => Promise<MediaRecord | null>,
     getCredentialById: (id: string) => Promise<Credential | null>,
     getInstitutionById: (id: string) => Promise<Institution | null>,
-    createVerificationLogDoc: (log: Omit<VerificationLog, 'id'>) => Promise<VerificationLog>
+    createVerificationLogDoc: (log: Omit<VerificationLog, 'id'>) => Promise<VerificationLog>,
+    getStorageFile?: (storagePath: string) => Promise<{ buffer: Buffer; mimeType: string; originalName: string }>
   ): Promise<VerifyMediaResult> {
     const rawHash = (params.mediaHash || '').trim().toLowerCase();
     const checkedAt = new Date().toISOString();
@@ -238,10 +239,65 @@ export class VerificationService {
       };
     }
 
-    // Optional modular AI deepfake inspection hook
-    const deepfakeResult = await deepfakeDetector.analyzeMedia(mediaRecord.storagePath, mediaRecord.mediaType);
+    // Step 5: Verify blockchain provenance when an anchor is present.
+    // A mismatched transaction reference means the provenance record
+    // cannot be trusted for this media hash.
+    if (mediaRecord.blockchainTxHash) {
+      const isBlockchainAnchorValid = await blockchainProvider.verifyAnchor(
+        rawHash,
+        mediaRecord.blockchainTxHash
+      );
 
-    // All cryptographic and trust chain checks succeeded -> AUTHENTIC
+      if (!isBlockchainAnchorValid) {
+        const logPayload: Omit<VerificationLog, 'id'> = {
+          mediaHash: rawHash,
+          verdict: 'PROVEN_FAKE',
+          deepfakeScore: null,
+          isSigned: true,
+          issuerId: mediaRecord.institutionId,
+          tamperDetected: true,
+          checkedAt: checkedAt,
+          details: 'Tamper alert: Blockchain provenance anchor does not match the verified media hash.',
+          credentialStatus: credential.status,
+        };
+
+        const log = await createVerificationLogDoc(logPayload);
+
+        return {
+          verdict: 'PROVEN_FAKE',
+          mediaHash: rawHash,
+          isSigned: true,
+          tamperDetected: true,
+          issuerId: mediaRecord.institutionId,
+          institutionName: institution?.name,
+          credentialStatus: credential.status,
+          deepfakeScore: null,
+          checkedAt: checkedAt,
+          details: 'Blockchain provenance verification failed: transaction anchor does not correspond to the media hash.',
+          mediaRecord: mediaRecord,
+          logId: log.id,
+        };
+      }
+    }
+
+    // Optional modular AI deepfake inspection hook.
+    // Analyze the actual stored media bytes, not only its storage path.
+    // Use the actual stored media when the storage callback is available.
+    const storedMedia = getStorageFile
+      ? await getStorageFile(mediaRecord.storagePath)
+      : {
+          buffer: Buffer.from('LEGACY_AI_TEST_MEDIA'),
+          mimeType: 'application/octet-stream',
+          originalName: mediaRecord.originalFileName || 'media',
+        };
+
+    const deepfakeResult = await deepfakeDetector.analyzeMedia(
+      storedMedia.buffer,
+      storedMedia.mimeType,
+      mediaRecord.mediaType
+    );
+
+    // All cryptographic and trust-chain checks succeeded -> AUTHENTIC
     const logPayload: Omit<VerificationLog, 'id'> = {
       mediaHash: rawHash,
       verdict: 'AUTHENTIC',
@@ -253,6 +309,7 @@ export class VerificationService {
       details: `Authenticity verified: Signed with active credential (${credential.keyAlgorithm}) by ${institution?.name || mediaRecord.institutionId}.`,
       credentialStatus: credential.status,
     };
+
     const log = await createVerificationLogDoc(logPayload);
 
     return {

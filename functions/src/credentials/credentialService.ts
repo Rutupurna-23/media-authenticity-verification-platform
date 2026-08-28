@@ -1,6 +1,6 @@
 import { Credential, CredentialStatus } from '../types.js';
 import { AuthService, AuthContext } from '../auth/authService.js';
-import { kmsProvider } from '../media/kmsProvider.js';
+import { kmsProvider, NodeCryptoKMSProvider } from '../media/kmsProvider.js';
 
 export interface RevokeCredentialParams {
   credentialId: string;
@@ -79,6 +79,11 @@ export class CredentialService {
       createdAt: new Date().toISOString(),
     };
 
-    return await createCredentialDoc(newCred);
+    const created = await createCredentialDoc(newCred);
+    const privKey = NodeCryptoKMSProvider.getPrivateKey(keyPair.privateKeyId);
+    if (privKey) {
+      NodeCryptoKMSProvider.registerKey(created.id, privKey);
+    }
+    return created;
   }
 }

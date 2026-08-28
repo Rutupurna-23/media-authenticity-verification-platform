@@ -13,14 +13,14 @@ export interface DeepfakeAnalysisResult {
  * Interface for connecting to a Python/PyTorch Cloud Run microservice.
  */
 export interface IDeepfakeDetectorProvider {
-  analyzeMedia(storagePath: string, mediaType: string): Promise<DeepfakeAnalysisResult>;
+  analyzeMedia(mediaBuffer: Buffer, mimeType: string, mediaType: string): Promise<DeepfakeAnalysisResult>;
 }
 
 /**
  * Default stub/mock-ready provider until Python PyTorch service is deployed.
  */
 export class CloudRunDeepfakeDetectorStub implements IDeepfakeDetectorProvider {
-  async analyzeMedia(_storagePath: string, _mediaType: string): Promise<DeepfakeAnalysisResult> {
+  async analyzeMedia(_mediaBuffer: Buffer, _mimeType: string, _mediaType: string): Promise<DeepfakeAnalysisResult> {
     // Modular placeholder: ready to execute HTTP call to Cloud Run Python PyTorch inference endpoint
     return {
       deepfakeScore: 0.02,
@@ -59,10 +59,15 @@ export class BlockchainProvenanceStub implements IBlockchainProvenanceProvider {
     };
   }
 
-  async verifyAnchor(_mediaHash: string, _txHash: string): Promise<boolean> {
-    return true;
+  async verifyAnchor(mediaHash: string, txHash: string): Promise<boolean> {
+    if (!mediaHash || !txHash) return false;
+    const expected = `0x${mediaHash.substring(0, 40)}`.toLowerCase();
+    return txHash.toLowerCase() === expected;
   }
 }
 
-export const deepfakeDetector = new CloudRunDeepfakeDetectorStub();
+import { GeminiDeepfakeDetector } from './geminiDeepfakeDetector.js';
+
+export const deepfakeDetector = new GeminiDeepfakeDetector();
 export const blockchainProvider = new BlockchainProvenanceStub();
+export { GeminiDeepfakeDetector };

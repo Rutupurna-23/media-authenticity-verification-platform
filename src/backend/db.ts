@@ -1,389 +1,192 @@
+﻿import { Institution, Credential, MediaRecord, VerificationLog } from '../types.js';
 import {
-  Institution,
-  Credential,
-  MediaRecord,
-  VerificationLog,
-} from '../types.js';
-import { firestore } from './firebase.js';
-import { Storage } from '@google-cloud/storage';
+  institutionRepository,
+  credentialRepository,
+  mediaRepository,
+  verificationLogRepository,
+  seedInitialFirestoreData,
+} from './firestore/index.js';
+import { mediaStorageService, StorageDownloadResult } from './storage/mediaStorageService.js';
+import { AuthContext } from '../../functions/src/auth/authService.js';
 
-const PROJECT_ID = 'media-authenticity-platform';
-const BUCKET_NAME = `${PROJECT_ID}-media`;
+/**
+ * Firestore-backed Database & Cloud Storage Service
+ * Fully integrates Firestore repositories and Firebase Cloud Storage buckets.
+ */
+export class FirestoreDatabaseService {
+  private static instance: FirestoreDatabaseService;
+  private initPromise: Promise<void> | null = null;
 
-const storage = new Storage({
-  projectId: PROJECT_ID,
-});
+  private constructor() {}
 
-const bucket = storage.bucket(BUCKET_NAME);
-
-const COLLECTIONS = {
-  institutions: 'institutions',
-  credentials: 'credentials',
-  mediaRecords: 'mediaRecords',
-  verificationLogs: 'verificationLogs',
-} as const;
-
-export interface StoredMediaFile {
-  buffer: Buffer;
-  mimeType: string;
-  originalName: string;
-}
-
-export class FirestoreDB {
-
-  // ==========================================
-  // INSTITUTIONS
-  // ==========================================
-
-  public async getInstitution(id: string): Promise<Institution | null> {
-    const snapshot = await firestore
-      .collection(COLLECTIONS.institutions)
-      .doc(id)
-      .get();
-
-    if (!snapshot.exists) {
-      return null;
+  public static getInstance(): FirestoreDatabaseService {
+    if (!FirestoreDatabaseService.instance) {
+      FirestoreDatabaseService.instance = new FirestoreDatabaseService();
     }
-
-    return snapshot.data() as Institution;
+    return FirestoreDatabaseService.instance;
   }
 
-  public async listInstitutions(): Promise<Institution[]> {
-    const snapshot = await firestore
-      .collection(COLLECTIONS.institutions)
-      .get();
+  public async ensureInitialized(): Promise<void> {
+    if (!this.initPromise) {
+      this.initPromise = (async () => {
+        try {
+          await seedInitialFirestoreData();
+        } catch (err) {
+          this.initPromise = null;
+          throw err;
+        }
+      })();
+    }
+    await this.initPromise;
+  }
 
-    return snapshot.docs.map(
-      (doc) => doc.data() as Institution
-    );
+  // 1. Institution operations (Firestore collection: institutions)
+  public async getInstitution(id: string): Promise<Institution | null> {
+    await this.ensureInitialized();
+    return await institutionRepository.get(id);
+  }
+
+  public async listInstitutions(callerAuth?: AuthContext): Promise<Institution[]> {
+    await this.ensureInitialized();
+    return await institutionRepository.list(callerAuth);
   }
 
   public async createInstitution(
-    inst: Omit<Institution, 'id'>
+    inst: Omit<Institution, 'id'> & { id?: string },
+    callerAuth?: AuthContext
   ): Promise<Institution> {
-    const id = `inst-${Date.now()}`;
-
-    const newInst: Institution = {
-      ...inst,
-      id,
+    await this.ensureInitialized();
+    const auth = callerAuth || {
+      uid: 'system-admin',
+      email: 'admin@verification-gateway.gov',
+      role: 'SYSTEM_ADMIN',
     };
-
-    await firestore
-      .collection(COLLECTIONS.institutions)
-      .doc(id)
-      .set(newInst);
-
-    return newInst;
+    return await institutionRepository.create(auth, inst);
   }
 
-  // ==========================================
-  // CREDENTIALS
-  // ==========================================
-
-  public async getCredential(
-    id: string
-  ): Promise<Credential | null> {
-    const snapshot = await firestore
-      .collection(COLLECTIONS.credentials)
-      .doc(id)
-      .get();
-
-    if (!snapshot.exists) {
-      return null;
-    }
-
-    return snapshot.data() as Credential;
-  }
-
-  public async listCredentials(
-    institutionId?: string
-  ): Promise<Credential[]> {
-
-    let query: FirebaseFirestore.Query =
-      firestore.collection(COLLECTIONS.credentials);
-
-    if (institutionId) {
-      query = query.where(
-        'institutionId',
-        '==',
-        institutionId
-      );
-    }
-
-    const snapshot = await query.get();
-
-    return snapshot.docs.map(
-      (doc) => doc.data() as Credential
-    );
-  }
-
-  public async createCredential(
-    cred: Omit<Credential, 'id'>
-  ): Promise<Credential> {
-
-    const id = `cred-${Date.now()}`;
-
-    const newCred: Credential = {
-      ...cred,
-      id,
-    };
-
-    await firestore
-      .collection(COLLECTIONS.credentials)
-      .doc(id)
-      .set(newCred);
-
-    return newCred;
-  }
-
-  public async updateCredential(
+  public async updateInstitution(
     id: string,
-    updates: Partial<Credential>
-  ): Promise<Credential> {
-
-    const existing = await this.getCredential(id);
-
-    if (!existing) {
-      throw new Error(`Credential '${id}' not found`);
-    }
-
-    const updated: Credential = {
-      ...existing,
-      ...updates,
+    updates: Partial<Institution>,
+    callerAuth?: AuthContext
+  ): Promise<Institution> {
+    await this.ensureInitialized();
+    const auth = callerAuth || {
+      uid: 'system-admin',
+      email: 'admin@verification-gateway.gov',
+      role: 'SYSTEM_ADMIN',
     };
-
-    await firestore
-      .collection(COLLECTIONS.credentials)
-      .doc(id)
-      .set(updated);
-
-    return updated;
+    return await institutionRepository.update(auth, id, updates);
   }
 
-  // ==========================================
-  // MEDIA RECORDS
-  // ==========================================
-
-  public async getMediaRecord(
-    id: string
-  ): Promise<MediaRecord | null> {
-
-    const snapshot = await firestore
-      .collection(COLLECTIONS.mediaRecords)
-      .doc(id)
-      .get();
-
-    if (!snapshot.exists) {
-      return null;
-    }
-
-    return snapshot.data() as MediaRecord;
+  // 2. Credential operations (Firestore collection: credentials)
+  public async getCredential(id: string): Promise<Credential | null> {
+    await this.ensureInitialized();
+    return await credentialRepository.get(id);
   }
 
-  public async findMediaRecordByHash(
-    hash: string
-  ): Promise<MediaRecord | null> {
-
-    const normalized = hash.toLowerCase();
-
-    const snapshot = await firestore
-      .collection(COLLECTIONS.mediaRecords)
-      .where('mediaHash', '==', normalized)
-      .limit(1)
-      .get();
-
-    if (snapshot.empty) {
-      return null;
-    }
-
-    return snapshot.docs[0].data() as MediaRecord;
+  public async listCredentials(institutionId?: string): Promise<Credential[]> {
+    await this.ensureInitialized();
+    return await credentialRepository.list(institutionId);
   }
 
-  public async listMediaRecords(
-    institutionId?: string
-  ): Promise<MediaRecord[]> {
-
-    let query: FirebaseFirestore.Query =
-      firestore.collection(COLLECTIONS.mediaRecords);
-
-    if (institutionId) {
-      query = query.where(
-        'institutionId',
-        '==',
-        institutionId
-      );
-    }
-
-    const snapshot = await query.get();
-
-    return snapshot.docs.map(
-      (doc) => doc.data() as MediaRecord
-    );
+  public async createCredential(cred: Omit<Credential, 'id'> & { id?: string }): Promise<Credential> {
+    await this.ensureInitialized();
+    return await credentialRepository.create(cred);
   }
 
-  public async createMediaRecord(
-    record: Omit<MediaRecord, 'id'>
-  ): Promise<MediaRecord> {
-
-    const id = `rec-${Date.now()}`;
-
-    const newRecord: MediaRecord = {
-      ...record,
-      id,
-    };
-
-    await firestore
-      .collection(COLLECTIONS.mediaRecords)
-      .doc(id)
-      .set(newRecord);
-
-    return newRecord;
+  public async updateCredential(id: string, updates: Partial<Credential>): Promise<Credential> {
+    await this.ensureInitialized();
+    return await credentialRepository.update(id, updates);
   }
 
-  public async updateMediaRecord(
+  public async revokeCredential(
     id: string,
-    updates: Partial<MediaRecord>
-  ): Promise<MediaRecord> {
-
-    const existing = await this.getMediaRecord(id);
-
-    if (!existing) {
-      throw new Error(
-        `MediaRecord '${id}' not found`
-      );
-    }
-
-    const updated: MediaRecord = {
-      ...existing,
-      ...updates,
+    revocationReason: string,
+    callerAuth?: AuthContext
+  ): Promise<Credential> {
+    await this.ensureInitialized();
+    const auth = callerAuth || {
+      uid: 'system-admin',
+      email: 'admin@verification-gateway.gov',
+      role: 'SYSTEM_ADMIN',
     };
-
-    await firestore
-      .collection(COLLECTIONS.mediaRecords)
-      .doc(id)
-      .set(updated);
-
-    return updated;
+    return await credentialRepository.revoke(auth, id, revocationReason);
   }
 
-  // ==========================================
-  // VERIFICATION LOGS
-  // ==========================================
-
-  public async createVerificationLog(
-    log: Omit<VerificationLog, 'id'>
-  ): Promise<VerificationLog> {
-
-    const id =
-      `log-${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(2, 6)}`;
-
-    const newLog: VerificationLog = {
-      ...log,
-      id,
-    };
-
-    await firestore
-      .collection(COLLECTIONS.verificationLogs)
-      .doc(id)
-      .set(newLog);
-
-    return newLog;
+  // 3. Media Record operations (Firestore collection: mediaRecords)
+  public async getMediaRecord(id: string): Promise<MediaRecord | null> {
+    await this.ensureInitialized();
+    return await mediaRepository.get(id);
   }
 
-  public async listVerificationLogs(
-    limitCount = 100
-  ): Promise<VerificationLog[]> {
-
-    const snapshot = await firestore
-      .collection(COLLECTIONS.verificationLogs)
-      .orderBy('checkedAt', 'desc')
-      .limit(limitCount)
-      .get();
-
-    return snapshot.docs.map(
-      (doc) => doc.data() as VerificationLog
-    );
+  public async findMediaRecordByHash(hash: string): Promise<MediaRecord | null> {
+    await this.ensureInitialized();
+    return await mediaRepository.findByHash(hash);
   }
 
-  // ==========================================
-  // GOOGLE CLOUD STORAGE
-  // ==========================================
+  public async listMediaRecords(institutionId?: string): Promise<MediaRecord[]> {
+    await this.ensureInitialized();
+    return await mediaRepository.list(institutionId);
+  }
 
+  public async createMediaRecord(record: Omit<MediaRecord, 'id'> & { id?: string }): Promise<MediaRecord> {
+    await this.ensureInitialized();
+    return await mediaRepository.create(record);
+  }
+
+  public async updateMediaRecord(id: string, updates: Partial<MediaRecord>): Promise<MediaRecord> {
+    await this.ensureInitialized();
+    return await mediaRepository.update(id, updates);
+  }
+
+  // 4. Verification Log operations (Firestore collection: verificationLogs)
+  public async createVerificationLog(log: Omit<VerificationLog, 'id'> & { id?: string }): Promise<VerificationLog> {
+    await this.ensureInitialized();
+    return await verificationLogRepository.create(log);
+  }
+
+  public async listVerificationLogs(limitCount = 100, issuerId?: string): Promise<VerificationLog[]> {
+    await this.ensureInitialized();
+    return await verificationLogRepository.list(limitCount, issuerId);
+  }
+
+  // 5. Binary Media Cloud Storage operations (Firebase / Google Cloud Storage bucket)
   public async saveStorageFile(
     storagePath: string,
     buffer: Buffer,
-    mimeType = 'application/octet-stream',
-    originalName = 'file'
+    mimeType?: string,
+    _originalName?: string,
+    callerAuth?: AuthContext
   ): Promise<string> {
+    await this.ensureInitialized();
+    const match = storagePath.match(/^media\/institutions\/([^/]+)\/(.+)$/);
+    const institutionId = match ? match[1] : 'general';
+    const fileName = match ? match[2] : 'file';
 
-    const file = bucket.file(storagePath);
-
-    await file.save(buffer, {
-      resumable: false,
-      metadata: {
-        contentType: mimeType,
-        metadata: {
-          originalName,
-        },
-      },
-    });
-
-    return storagePath;
-  }
-
-  public async getStorageFile(
-    storagePath: string
-  ): Promise<StoredMediaFile> {
-
-    const file = bucket.file(storagePath);
-
-    const [exists] = await file.exists();
-
-    if (!exists) {
-      throw new Error(
-        `Storage file '${storagePath}' not found`
-      );
-    }
-
-    const [buffer] = await file.download();
-
-    const [metadata] = await file.getMetadata();
-
-    const mimeType =
-      metadata.contentType ||
-      'application/octet-stream';
-
-    const originalName =
-      String(metadata.metadata?.originalName ?? storagePath.split('/').pop() ?? 'file');
-
-    return {
-      buffer,
+    const result = await mediaStorageService.upload({
+      institutionId,
+      fileName,
+      fileBuffer: buffer,
       mimeType,
-      originalName,
-    };
+      callerAuth,
+    });
+    return result.storagePath;
   }
 
-  public async deleteStorageFile(
-    storagePath: string
-  ): Promise<void> {
+  public async getStorageFile(storagePath: string, callerAuth?: AuthContext): Promise<StorageDownloadResult> {
+    await this.ensureInitialized();
+    return await mediaStorageService.download(storagePath, callerAuth);
+  }
 
-    const file = bucket.file(storagePath);
+  public async deleteStorageFile(storagePath: string, callerAuth?: AuthContext): Promise<void> {
+    await this.ensureInitialized();
+    await mediaStorageService.delete(storagePath, callerAuth);
+  }
 
-    const [exists] = await file.exists();
-
-    if (!exists) {
-      return;
-    }
-
-    await file.delete();
+  public async storageFileExists(storagePath: string): Promise<boolean> {
+    await this.ensureInitialized();
+    return await mediaStorageService.exists(storagePath);
   }
 }
 
-// ==========================================
-// DATABASE SINGLETON
-// ==========================================
-
-export const db = new FirestoreDB();
-
+export const db = FirestoreDatabaseService.getInstance();

@@ -66,6 +66,7 @@ export interface VerificationLog {
   details?: string;
   institutionName?: string;
   credentialStatus?: CredentialStatus;
+  executionDurationMs?: number;
 }
 
 export interface VerificationResultPayload {
@@ -81,4 +82,5 @@ export interface VerificationResultPayload {
   details: string;
   mediaRecord?: MediaRecord | null;
   logId?: string;
+  executionDurationMs?: number;
 }

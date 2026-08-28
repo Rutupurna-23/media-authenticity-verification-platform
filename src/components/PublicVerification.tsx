@@ -88,8 +88,15 @@ export const PublicVerification: React.FC<PublicVerificationProps> = ({ mediaRec
       }
 
       if (!response.ok) {
+        if (response.status === 429) {
+          const retryAfter = response.headers.get('Retry-After') || '60';
+          throw new Error(`Rate limit exceeded: Too many verification queries. Please wait ${retryAfter} seconds before trying again.`);
+        }
+        if (response.status === 503) {
+          throw new Error('Service currently degraded: Backend dependencies are undergoing maintenance. Please retry shortly.');
+        }
         const errData = await response.json().catch(() => ({ error: 'Verification request failed' }));
-        throw new Error(errData.error || `Server responded with ${response.status}`);
+        throw new Error(errData.error || `Server responded with status ${response.status}`);
       }
 
       const data: VerificationResultPayload = await response.json();

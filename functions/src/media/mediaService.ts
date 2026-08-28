@@ -2,6 +2,7 @@ import * as crypto from 'crypto';
 import { MediaRecord, MediaType, Credential, Institution } from '../types.js';
 import { AuthService, AuthContext } from '../auth/authService.js';
 import { kmsProvider } from './kmsProvider.js';
+import { blockchainProvider } from '../verification/modularProviders.js';
 
 export interface UploadMediaParams {
   institutionId: string;
@@ -28,6 +29,8 @@ export interface SignMediaResult {
   credentialId: string;
   institutionId: string;
   keyAlgorithm: string;
+  blockchainTxHash?: string | null;
+  isIdempotentReplay?: boolean;
 }
 
 const ALLOWED_MEDIA_TYPES: MediaType[] = ['AUDIO', 'VIDEO', 'NOTICE', 'EMERGENCY'];
@@ -188,20 +191,39 @@ export class MediaService {
 
     const hashToSign = mediaRecord.mediaHash;
 
+    // Idempotency: If already signed with the exact same active credential and has blockchain anchor, return existing signature
+    if (mediaRecord.status === 'SIGNED' && mediaRecord.credentialId === credential.id && mediaRecord.signature && mediaRecord.blockchainTxHash) {
+      return {
+        signature: mediaRecord.signature,
+        mediaHash: hashToSign,
+        status: 'SIGNED',
+        timestamp: mediaRecord.signedAt || new Date().toISOString(),
+        credentialId: credential.id,
+        institutionId: params.institutionId,
+        keyAlgorithm: credential.keyAlgorithm,
+        blockchainTxHash: mediaRecord.blockchainTxHash,
+        isIdempotentReplay: true,
+      };
+    }
+
     // 4. Generate digital signature for the media hash using backend KMS abstraction
     // Private keys are NEVER exposed to frontend or stored in Firestore
     const signature = await kmsProvider.signHash(credential.id, hashToSign, credential.keyAlgorithm);
     const signedTimestamp = new Date().toISOString();
 
-    // 5. Store signature in mediaRecords
+    // 5. Anchor signature onto Blockchain Provenance layer
+    const anchorResult = await blockchainProvider.anchorMediaHash(hashToSign, params.institutionId);
+
+    // 6. Store signature and blockchain anchor in mediaRecords
     await updateMediaRecordDoc(mediaRecord.id, {
       signature: signature,
       credentialId: credential.id,
+      blockchainTxHash: anchorResult.txHash,
       status: 'SIGNED',
       signedAt: signedTimestamp,
     });
 
-    // 6. Return the signature, media hash, status, and timestamp
+    // 7. Return the signature, media hash, status, blockchain anchor, and timestamp
     return {
       signature: signature,
       mediaHash: hashToSign,
@@ -210,6 +232,7 @@ export class MediaService {
       credentialId: credential.id,
       institutionId: params.institutionId,
       keyAlgorithm: credential.keyAlgorithm,
+      blockchainTxHash: anchorResult.txHash,
     };
   }
 }
