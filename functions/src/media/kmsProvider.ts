@@ -1,4 +1,4 @@
-﻿import * as crypto from 'crypto';
+import * as crypto from 'crypto';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -107,18 +107,29 @@ export class NodeCryptoKMSProvider implements IKMSProvider {
    */
   static hydrateDevelopmentVault(): void {
     const keys = loadDevelopmentKeys();
+    let changed = false;
 
-    for (const [credId, keyData] of Object.entries(keys)) {
+    for (const [credId, algorithm] of Object.entries(DEV_KEY_IDS)) {
+      const existing = keys[credId];
+
       if (
-        keyData &&
-        typeof keyData.privateKeyPem === 'string' &&
-        keyData.privateKeyPem.trim() !== ''
+        !existing ||
+        existing.algorithm !== algorithm ||
+        !existing.privateKeyPem ||
+        !existing.publicKeyPem
       ) {
-        NodeCryptoKMSProvider.privateKeyVault.set(
-          credId,
-          keyData.privateKeyPem,
-        );
+        keys[credId] = generateDevelopmentKey(algorithm);
+        changed = true;
       }
+
+      NodeCryptoKMSProvider.privateKeyVault.set(
+        credId,
+        keys[credId].privateKeyPem,
+      );
+    }
+
+    if (changed) {
+      saveDevelopmentKeys(keys);
     }
   }
 

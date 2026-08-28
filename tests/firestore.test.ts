@@ -1,4 +1,4 @@
-﻿import { institutionRepository } from '../src/backend/firestore/institutionRepository.js';
+import { institutionRepository } from '../src/backend/firestore/institutionRepository.js';
 import { credentialRepository } from '../src/backend/firestore/credentialRepository.js';
 import { mediaRepository } from '../src/backend/firestore/mediaRepository.js';
 import { verificationLogRepository } from '../src/backend/firestore/verificationLogRepository.js';
@@ -54,6 +54,7 @@ const PUBLIC_USER_AUTH: AuthContext = {
 };
 
 async function runTests() {
+  const testRunId = Date.now().toString();
   console.log('\n======================================================');
   console.log('ðŸ§ª RUNNING COMPREHENSIVE BACKEND & PLATFORM TESTS');
   console.log('======================================================\n');
@@ -145,7 +146,7 @@ async function runTests() {
     assert(revokedCred.status === 'REVOKED' && revokedCred.revocationReason === 'Key rotation policy 2026', 'Can revoke credential with reason in Firestore');
 
     // 6. Media Record & Public Verification Pipeline
-    const testBuffer = Buffer.from('TEST VERIFIED BULLETIN CONTENT 2026');
+    const testBuffer = Buffer.from(`TEST VERIFIED BULLETIN CONTENT 2026-${testRunId}`);
     const testHash = crypto.createHash('sha256').update(testBuffer).digest('hex');
 
     const activeCred = await CredentialService.issueCredential(
@@ -350,7 +351,7 @@ async function runTests() {
     console.log('\n[SECTION 4] Phase 4 Cloud Functions v2 Triggers & Handlers Tests...');
 
     // 18. Cloud Functions uploadMediaHandler
-    const cfUploadBuffer = Buffer.from('CLOUD_FUNCTIONS_PAYLOAD_TEST_2026');
+    const cfUploadBuffer = Buffer.from(`CLOUD_FUNCTIONS_PAYLOAD_TEST_2026-${testRunId}`);
     const cfUploadRecord = await uploadMediaHandler(
       FEMA_ISSUER_AUTH,
       {
@@ -1006,7 +1007,7 @@ async function runTests() {
 
     // 61. Master End-to-End Lifecycle: Issuance -> Upload -> Sign -> Verify -> Audit -> Revoke -> Proven Fake
     const masterInstId = 'inst-fema';
-    const masterBuffer = Buffer.from('MASTER_PHASE_10_E2E_ACCEPTED_PAYLOAD');
+    const masterBuffer = Buffer.from(`MASTER_PHASE_10_E2E_ACCEPTED_PAYLOAD-${testRunId}`);
     const masterHash = crypto.createHash('sha256').update(masterBuffer).digest('hex');
 
     // Step A: Issue active credential
