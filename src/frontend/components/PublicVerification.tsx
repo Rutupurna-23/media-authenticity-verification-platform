@@ -19,7 +19,7 @@ import {
   RefreshCw,
   Zap,
 } from 'lucide-react';
-import { VerificationResultPayload, MediaRecord, MediaType } from '../types.js';
+import { VerificationResultPayload, MediaRecord, MediaType } from '../../types.js';
 
 interface PublicVerificationProps {
   mediaRecords: MediaRecord[];

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Lock, Mail, Building2, UserCheck, KeyRound, ArrowRight, AlertCircle, Sparkles } from 'lucide-react';
-import { UserRole } from '../types.js';
+import { UserRole } from '../../types.js';
 
 interface LoginPageProps {
   onLoginSuccess: (role: UserRole, email: string, name: string, institutionId?: string) => void;

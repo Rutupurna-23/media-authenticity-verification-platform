@@ -16,7 +16,7 @@ import {
   FileCheck,
   Hash,
 } from 'lucide-react';
-import { Institution, Credential, MediaRecord, MediaType } from '../types.js';
+import { Institution, Credential, MediaRecord, MediaType } from '../../types.js';
 
 interface InstitutionalPortalProps {
   institutions: Institution[];
