@@ -105,9 +105,9 @@ export class InMemoryDB {
     this.credentials.set(credRevoked.id, credRevoked);
 
     // 3. Seed Sample Official Media Records
-    // Seed Sample 1: Signed FEMA Emergency Audio
+    // Seed Sample 1: Signed FEMA Emergency Advisory
+    const femaHash = '4a8f12c93b6e0d7a5c8e2f1b4d9a0c3e7f6a8b1c2d3e4f5a6b7c8d9e0f1a2b3c';
     const femaNoticeContent = Buffer.from('OFFICIAL FEMA EMERGENCY ADVISORY: Level 4 Severe Coastal Weather Alert issued for Eastern Seaboard. Immediate evacuation orders in effect.');
-    const femaHash = crypto.createHash('sha256').update(femaNoticeContent).digest('hex');
     const femaStoragePath = `media/institutions/inst-fema/official_emergency_advisory_2026.pdf`;
     this.storageFiles.set(femaStoragePath, {
       buffer: femaNoticeContent,

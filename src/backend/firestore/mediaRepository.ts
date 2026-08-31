@@ -14,6 +14,18 @@ export class MediaRepository {
   async findByHash(mediaHash: string): Promise<MediaRecord | null> {
     if (!mediaHash) return null;
     const normalized = mediaHash.trim().toLowerCase();
+
+    // 1. Direct document ID lookup: media_manifests/{mediaHash} or mediaRecords/{mediaHash}
+    try {
+      const directDoc = await this.collection.doc(normalized).get();
+      if (directDoc.exists) {
+        return { id: directDoc.id, ...(directDoc.data() as Omit<MediaRecord, 'id'>) };
+      }
+    } catch (_err) {
+      // Fall through to query if direct ID lookup fails
+    }
+
+    // 2. Query fallback: where('mediaHash', '==', normalized)
     const snapshot = await this.collection
       .where('mediaHash', '==', normalized)
       .limit(1)

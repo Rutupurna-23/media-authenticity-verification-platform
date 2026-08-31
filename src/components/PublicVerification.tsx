@@ -19,7 +19,7 @@ import {
   RefreshCw,
   Zap,
 } from 'lucide-react';
-import { VerificationResultPayload, MediaRecord } from '../types.js';
+import { VerificationResultPayload, MediaRecord, MediaType } from '../types.js';
 
 interface PublicVerificationProps {
   mediaRecords: MediaRecord[];
@@ -290,11 +290,41 @@ export const PublicVerification: React.FC<PublicVerificationProps> = ({ mediaRec
           <span className="text-[10px] text-cyan-400 font-mono">Click to test instant verification</span>
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-          {mediaRecords.slice(0, 3).map((rec) => {
-            const isFema = rec.id.includes('fema-001');
-            const isRevoked = rec.id.includes('revoked');
+          {(() => {
+            const authenticRec =
+              mediaRecords.find((r) => r.status === 'SIGNED' && (r.id === 'rec-fema-001' || r.credentialId === 'cred-fema-primary')) || {
+                id: 'rec-fema-001',
+                mediaHash: '4a8f12c93b6e0d7a5c8e2f1b4d9a0c3e7f6a8b1c2d3e4f5a6b7c8d9e0f1a2b3c',
+                title: 'FEMA Level 4 Coastal Evacuation Notice',
+                mediaType: 'EMERGENCY' as MediaType,
+                originalFileName: 'official_emergency_advisory_2026.pdf',
+              };
 
-            return (
+            const revokedRec =
+              mediaRecords.find((r) => r.id.includes('revoked') || r.credentialId.includes('compromised')) || {
+                id: 'rec-fema-revoked-002',
+                mediaHash: '94c32e4102340e36abef1234567890abcdef1234567890abcdef1234567890ab',
+                title: 'Discontinued FEMA 2024 Guidelines',
+                mediaType: 'NOTICE' as MediaType,
+                originalFileName: 'old_bulletin_2024.pdf',
+              };
+
+            const unsignedRec =
+              mediaRecords.find((r) => r.status === 'PENDING_SIGNATURE' || r.id === 'rec-noaa-003') || {
+                id: 'rec-noaa-003',
+                mediaHash: '113c1d7c1f529dcc2b7e4b38cfc4b7ea2f6a00e9936614af058f5b6cdc5c1a87',
+                title: 'NOAA Radar Draft Video (Unsigned)',
+                mediaType: 'VIDEO' as MediaType,
+                originalFileName: 'radar_draft.mp4',
+              };
+
+            const demoList = [
+              { rec: authenticRec, badge: 'AUTHENTIC', theme: 'bg-emerald-950/40 border-emerald-800/60 hover:border-emerald-500/80 text-emerald-300' },
+              { rec: revokedRec, badge: 'REVOKED', theme: 'bg-rose-950/40 border-rose-800/60 hover:border-rose-500/80 text-rose-300' },
+              { rec: unsignedRec, badge: 'UNSIGNED', theme: 'bg-amber-950/40 border-amber-800/60 hover:border-amber-500/80 text-amber-300' },
+            ];
+
+            return demoList.map(({ rec, badge, theme }) => (
               <motion.button
                 key={rec.id}
                 whileHover={{ scale: 1.02, translateY: -2 }}
@@ -305,25 +335,19 @@ export const PublicVerification: React.FC<PublicVerificationProps> = ({ mediaRec
                   setCalculatedClientHash(rec.mediaHash);
                   handleVerify(rec.mediaHash);
                 }}
-                className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between shadow-sm ${
-                  isFema
-                    ? 'bg-emerald-950/40 border-emerald-800/60 hover:border-emerald-500/80 text-emerald-300'
-                    : isRevoked
-                    ? 'bg-rose-950/40 border-rose-800/60 hover:border-rose-500/80 text-rose-300'
-                    : 'bg-amber-950/40 border-amber-800/60 hover:border-amber-500/80 text-amber-300'
-                }`}
+                className={`p-3.5 rounded-xl border text-left transition-all flex flex-col justify-between shadow-sm ${theme}`}
               >
                 <div className="flex items-center justify-between mb-1.5">
                   <span className="font-bold text-white truncate max-w-[170px]">{rec.title || rec.id}</span>
                   <span className="text-[10px] font-mono font-bold uppercase px-2 py-0.5 rounded-full bg-slate-950 border border-slate-800 shadow-inner">
-                    {isFema ? 'AUTHENTIC' : isRevoked ? 'REVOKED' : 'UNSIGNED'}
+                    {badge}
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-400 truncate">{rec.mediaType} &bull; {rec.originalFileName}</p>
                 <p className="text-[10px] font-mono text-slate-500 mt-2 truncate">Hash: {rec.mediaHash.substring(0, 16)}...</p>
               </motion.button>
-            );
-          })}
+            ));
+          })()}
         </div>
       </div>
 

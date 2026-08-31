@@ -115,7 +115,8 @@ export class MediaService {
     const now = new Date().toISOString();
 
     // 5. Store metadata in mediaRecords (Do not store media files inside Firestore)
-    const newRecord: Omit<MediaRecord, 'id'> = {
+    const newRecord: Omit<MediaRecord, 'id'> & { id?: string } = {
+      id: mediaHash,
       institutionId: params.institutionId,
       credentialId: params.credentialId || '',
       mediaHash: mediaHash,

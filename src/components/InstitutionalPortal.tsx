@@ -312,15 +312,15 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
               <span className="text-slate-200 font-semibold truncate max-w-[170px]">{selectedCredential?.id || 'Unassigned'}</span>
             </div>
             <div className="flex items-center justify-between text-slate-400">
-              <span className="text-slate-500">Signing</span>
+              <span className="text-slate-500">Signing Algorithm</span>
               <span className="text-cyan-300 font-semibold">{selectedCredential?.keyAlgorithm || 'RSA-PSS-SHA256'}</span>
             </div>
             <div className="flex items-center justify-between text-slate-400">
-              <span className="text-slate-500">Protection</span>
+              <span className="text-slate-500">Key Protection</span>
               <span className="text-indigo-300 font-semibold">KMS / HSM</span>
             </div>
             <div className="flex items-center justify-between text-slate-400">
-              <span className="text-slate-500">Status</span>
+              <span className="text-slate-500">Credential Status</span>
               <span
                 className={`font-bold ${
                   trustState === 'ACTIVE'

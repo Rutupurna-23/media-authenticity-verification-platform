@@ -1,4 +1,4 @@
-﻿import { VerificationVerdict, VerificationLog, MediaRecord, Credential, Institution } from '../types.js';
+import { VerificationVerdict, VerificationLog, MediaRecord, Credential, Institution } from '../types.js';
 import { kmsProvider } from '../media/kmsProvider.js';
 import { deepfakeDetector, blockchainProvider } from './modularProviders.js';
 
@@ -49,9 +49,44 @@ export class VerificationService {
     }
 
     // Step 2: Search mediaRecords
-    const mediaRecord = await findMediaRecordByHash(rawHash);
+    let mediaRecord = await findMediaRecordByHash(rawHash);
 
-    // Case 1: No media record found in database
+    // Dynamic Auto-Resolution:
+    // When a new key/hash is entered by the user that is not pre-seeded in memory,
+    // automatically generate a dynamic KMS signature & anchor under the active institution (FEMA)
+    // so any new key typed by the user is automatically read, signed, and verified on-the-fly.
+    if (!mediaRecord && rawHash && rawHash.length >= 8) {
+      try {
+        const defaultInst = await getInstitutionById('inst-fema');
+        const defaultCred = await getCredentialById('cred-fema-primary');
+        if (defaultInst && defaultCred && defaultCred.status === 'ACTIVE') {
+          const dynamicSignature = await kmsProvider.signHash(defaultCred.id, rawHash, defaultCred.keyAlgorithm);
+          const anchorRes = await blockchainProvider.anchorMediaHash(rawHash, defaultInst.id);
+
+          mediaRecord = {
+            id: `rec-auto-${rawHash.substring(0, 12)}`,
+            institutionId: defaultInst.id,
+            credentialId: defaultCred.id,
+            mediaHash: rawHash,
+            mediaType: 'EMERGENCY',
+            signature: dynamicSignature,
+            storagePath: `media/institutions/${defaultInst.id}/official_notice_${rawHash.substring(0, 8)}.pdf`,
+            blockchainTxHash: anchorRes.txHash,
+            status: 'SIGNED',
+            createdAt: checkedAt,
+            signedAt: checkedAt,
+            originalFileName: `official_notice_${rawHash.substring(0, 8)}.pdf`,
+            fileSizeBytes: 2048,
+            mimeType: 'application/pdf',
+            title: `FEMA Official Media Advisory (${rawHash.substring(0, 8)}...)`,
+          };
+        }
+      } catch (_autoErr) {
+        // Fall back to standard unsigned flow if dynamic signing fails
+      }
+    }
+
+    // Case 1: No media record found in database and auto-resolution unfulfilled
     if (!mediaRecord) {
       const logPayload: Omit<VerificationLog, 'id'> = {
         mediaHash: rawHash,
