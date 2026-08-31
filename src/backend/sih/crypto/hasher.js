@@ -1,9 +1,9 @@
-const crypto = require('crypto');
+import crypto from 'crypto';
 
 /**
  * Compute SHA-256 hash of a string, object, or buffer
  */
-function sha256(data) {
+export function sha256(data) {
     const hash = crypto.createHash('sha256');
     if (Buffer.isBuffer(data)) {
         hash.update(data);
@@ -18,7 +18,7 @@ function sha256(data) {
 /**
  * Compute Merkle root of a list of transaction/seal hashes
  */
-function calculateMerkleRoot(hashes) {
+export function calculateMerkleRoot(hashes) {
     if (!hashes || hashes.length === 0) {
         return sha256('EMPTY_BLOCK');
     }
@@ -38,7 +38,7 @@ function calculateMerkleRoot(hashes) {
 /**
  * Secure password hashing using PBKDF2 with salt
  */
-function hashPassword(password) {
+export function hashPassword(password) {
     const salt = crypto.randomBytes(16).toString('hex');
     const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
     return { salt, hash };
@@ -47,16 +47,15 @@ function hashPassword(password) {
 /**
  * Verify password against salt and stored hash
  */
-function verifyPassword(password, salt, storedHash) {
+export function verifyPassword(password, salt, storedHash) {
     const hash = crypto.pbkdf2Sync(password, salt, 100000, 64, 'sha512').toString('hex');
     return crypto.timingSafeEqual(Buffer.from(hash, 'hex'), Buffer.from(storedHash, 'hex'));
 }
 
 /**
  * Generate unique cryptographic Seal number
- * e.g., TS-2026-A8F4-9C12
  */
-function generateSealNumber() {
+export function generateSealNumber() {
     const bytes = crypto.randomBytes(4).toString('hex').toUpperCase();
     const bytes2 = crypto.randomBytes(2).toString('hex').toUpperCase();
     return `TS-2026-${bytes.slice(0, 4)}-${bytes.slice(4)}${bytes2}`;
@@ -65,7 +64,7 @@ function generateSealNumber() {
 /**
  * Sign data with secret key (HMAC-SHA256 signature)
  */
-function signPayload(payload, secretKey) {
+export function signPayload(payload, secretKey) {
     const hmac = crypto.createHmac('sha256', secretKey);
     hmac.update(typeof payload === 'string' ? payload : JSON.stringify(payload));
     return hmac.digest('hex');
@@ -74,12 +73,12 @@ function signPayload(payload, secretKey) {
 /**
  * Verify digital signature
  */
-function verifySignature(payload, signature, secretKey) {
+export function verifySignature(payload, signature, secretKey) {
     const expected = signPayload(payload, secretKey);
     return crypto.timingSafeEqual(Buffer.from(signature, 'hex'), Buffer.from(expected, 'hex'));
 }
 
-module.exports = {
+export default {
     sha256,
     calculateMerkleRoot,
     hashPassword,

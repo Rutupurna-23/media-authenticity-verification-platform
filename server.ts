@@ -23,11 +23,8 @@ import { logger } from './src/backend/utils/logger.js';
 import { createRateLimiter } from './src/backend/middleware/rateLimiter.js';
 import { validateConfig } from './src/backend/config/envValidator.js';
 
-// @ts-ignore
 import sihAuthRoutes from './src/backend/sih/routes/authRoutes.js';
-// @ts-ignore
 import sihSealRoutes from './src/backend/sih/routes/sealRoutes.js';
-// @ts-ignore
 import sihLedgerRoutes from './src/backend/sih/routes/ledgerRoutes.js';
 
 const upload = multer({

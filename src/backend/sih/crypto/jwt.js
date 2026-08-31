@@ -1,5 +1,5 @@
-const crypto = require('crypto');
-const config = require('../config');
+import crypto from 'crypto';
+import config from '../config.js';
 
 function base64UrlEncode(str) {
     return Buffer.from(str)
@@ -20,7 +20,7 @@ function base64UrlDecode(str) {
 /**
  * Generate a cryptographically signed JWT token
  */
-function signToken(payload, expiresInMs = config.JWT_EXPIRES_IN) {
+export function signToken(payload, expiresInMs = config.JWT_EXPIRES_IN) {
     const header = { alg: 'HS256', typ: 'JWT' };
     const now = Date.now();
     const fullPayload = {
@@ -46,7 +46,7 @@ function signToken(payload, expiresInMs = config.JWT_EXPIRES_IN) {
 /**
  * Verify and decode JWT token
  */
-function verifyToken(token) {
+export function verifyToken(token) {
     try {
         const parts = token.split('.');
         if (parts.length !== 3) {
@@ -79,7 +79,7 @@ function verifyToken(token) {
     }
 }
 
-module.exports = {
+export default {
     signToken,
     verifyToken
 };

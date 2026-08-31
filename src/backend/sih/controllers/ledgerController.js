@@ -1,11 +1,11 @@
-const db = require('../db/database');
-const { verifyChainIntegrity, getRecentBlocks } = require('../crypto/blockchain');
+import db from '../db/database.js';
+import { verifyChainIntegrity, getRecentBlocks } from '../crypto/blockchain.js';
 
 /**
  * Get recent blockchain blocks
  * GET /api/ledger/blocks
  */
-function getBlocks(req, res) {
+export function getBlocks(req, res) {
     try {
         const limit = parseInt(req.query.limit) || 20;
         const blocks = getRecentBlocks(limit);
@@ -24,7 +24,7 @@ function getBlocks(req, res) {
  * Get single block by height
  * GET /api/ledger/blocks/:height
  */
-function getBlockByHeight(req, res) {
+export function getBlockByHeight(req, res) {
     try {
         const height = parseInt(req.params.height);
         const block = db.prepare('SELECT * FROM blockchain WHERE block_height = ?').get(height);
@@ -52,7 +52,7 @@ function getBlockByHeight(req, res) {
  * Get platform stats and cryptographic health
  * GET /api/ledger/stats
  */
-function getStats(req, res) {
+export function getStats(req, res) {
     try {
         const totalSeals = db.prepare('SELECT COUNT(*) as count FROM seals').get().count;
         const activeSeals = db.prepare("SELECT COUNT(*) as count FROM seals WHERE status = 'ACTIVE'").get().count;
@@ -81,7 +81,7 @@ function getStats(req, res) {
     }
 }
 
-module.exports = {
+export default {
     getBlocks,
     getBlockByHeight,
     getStats

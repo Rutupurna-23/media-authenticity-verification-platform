@@ -1,10 +1,11 @@
-const express = require('express');
+import express from 'express';
+import ledgerController from '../controllers/ledgerController.js';
+
 const router = express.Router();
-const ledgerController = require('../controllers/ledgerController');
 
 // Public blockchain explorer routes
 router.get('/blocks', ledgerController.getBlocks);
 router.get('/blocks/:height', ledgerController.getBlockByHeight);
 router.get('/stats', ledgerController.getStats);
 
-module.exports = router;
+export default router;

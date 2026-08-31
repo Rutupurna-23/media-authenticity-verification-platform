@@ -1,11 +1,11 @@
-const db = require('../db/database');
-const { sha256, calculateMerkleRoot } = require('./hasher');
-const config = require('../config');
+import db from '../db/database.js';
+import { sha256, calculateMerkleRoot } from './hasher.js';
+import config from '../config.js';
 
 /**
  * Get latest block in the blockchain
  */
-function getLatestBlock() {
+export function getLatestBlock() {
     return db.prepare('SELECT * FROM blockchain ORDER BY block_height DESC LIMIT 1').get();
 }
 
@@ -13,7 +13,7 @@ function getLatestBlock() {
  * Mine and record a new block into the immutable ledger
  * @param {Array<string>} txHashes - Array of transaction/seal hashes included in this block
  */
-function createBlock(txHashes) {
+export function createBlock(txHashes) {
     const latestBlock = getLatestBlock();
     const newHeight = (latestBlock ? latestBlock.block_height : 0) + 1;
     const prevHash = latestBlock ? latestBlock.hash : '0000000000000000000000000000000000000000000000000000000000000000';
@@ -54,7 +54,7 @@ function createBlock(txHashes) {
 /**
  * Validate full blockchain integrity from genesis to current tip
  */
-function verifyChainIntegrity() {
+export function verifyChainIntegrity() {
     const blocks = db.prepare('SELECT * FROM blockchain ORDER BY block_height ASC').all();
     if (!blocks || blocks.length === 0) return { valid: false, error: 'Empty chain' };
 
@@ -91,11 +91,11 @@ function verifyChainIntegrity() {
 /**
  * Get recent blocks for explorer
  */
-function getRecentBlocks(limit = 10) {
+export function getRecentBlocks(limit = 10) {
     return db.prepare('SELECT * FROM blockchain ORDER BY block_height DESC LIMIT ?').all(limit);
 }
 
-module.exports = {
+export default {
     getLatestBlock,
     createBlock,
     verifyChainIntegrity,

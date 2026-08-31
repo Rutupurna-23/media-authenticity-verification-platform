@@ -1,7 +1,7 @@
-const fs = require('fs');
-const path = require('path');
-const config = require('../config');
-const { hashPassword, sha256 } = require('../crypto/hasher');
+import fs from 'fs';
+import path from 'path';
+import config from '../config.js';
+import { hashPassword, sha256 } from '../crypto/hasher.js';
 
 // Ensure data and upload directory exists if possible
 try {
@@ -310,4 +310,4 @@ function seedDemoAccount(name, email, password, role, organization) {
 // Initialize database schema on load
 initSchema();
 
-module.exports = db;
+export default db;

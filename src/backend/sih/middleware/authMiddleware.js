@@ -1,10 +1,10 @@
-const { verifyToken } = require('../crypto/jwt');
-const db = require('../db/database');
+import { verifyToken } from '../crypto/jwt.js';
+import db from '../db/database.js';
 
 /**
  * Authentication middleware that validates JWT tokens
  */
-function requireAuth(req, res, next) {
+export function requireAuth(req, res, next) {
     const authHeader = req.headers['authorization'];
     let token = null;
 
@@ -46,7 +46,7 @@ function requireAuth(req, res, next) {
  * Middleware factory for role-based authorization
  * @param  {...string} allowedRoles - e.g. 'issuer', 'admin'
  */
-function requireRole(...allowedRoles) {
+export function requireRole(...allowedRoles) {
     return (req, res, next) => {
         if (!req.user) {
             return res.status(401).json({ success: false, error: 'Authentication required.' });
@@ -63,7 +63,7 @@ function requireRole(...allowedRoles) {
     };
 }
 
-module.exports = {
+export default {
     requireAuth,
     requireRole
 };

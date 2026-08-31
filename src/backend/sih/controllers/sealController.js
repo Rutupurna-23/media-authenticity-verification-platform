@@ -1,14 +1,14 @@
-const fs = require('fs');
-const db = require('../db/database');
-const config = require('../config');
-const { sha256, generateSealNumber, signPayload, verifySignature } = require('../crypto/hasher');
-const { createBlock, getLatestBlock } = require('../crypto/blockchain');
+import fs from 'fs';
+import db from '../db/database.js';
+import config from '../config.js';
+import { sha256, generateSealNumber, signPayload, verifySignature } from '../crypto/hasher.js';
+import { createBlock, getLatestBlock } from '../crypto/blockchain.js';
 
 /**
  * Issue a new cryptographic seal
  * POST /api/seals/issue
  */
-function issueSeal(req, res) {
+export function issueSeal(req, res) {
     try {
         const {
             recipient_name,
@@ -131,7 +131,7 @@ function issueSeal(req, res) {
  * Verify seal authenticity
  * GET /api/seals/verify/:sealNumber or POST /api/seals/verify
  */
-function verifySeal(req, res) {
+export function verifySeal(req, res) {
     try {
         let sealNumber = (req.params.sealNumber || req.body.seal_number || req.query.seal || '').trim();
         let targetDocHash = (req.body.doc_hash || '').trim();
@@ -261,7 +261,7 @@ function verifySeal(req, res) {
  * Revoke an existing seal
  * POST /api/seals/revoke
  */
-function revokeSeal(req, res) {
+export function revokeSeal(req, res) {
     try {
         const { seal_number, reason = 'Administrative revocation' } = req.body;
         if (!seal_number) {
@@ -313,7 +313,7 @@ function revokeSeal(req, res) {
  * List seals based on user role
  * GET /api/seals
  */
-function getSeals(req, res) {
+export function getSeals(req, res) {
     try {
         let seals = [];
         if (req.user.role === 'admin') {
@@ -339,7 +339,7 @@ function getSeals(req, res) {
     }
 }
 
-module.exports = {
+export default {
     issueSeal,
     verifySeal,
     revokeSeal,

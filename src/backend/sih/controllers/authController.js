@@ -1,12 +1,12 @@
-const db = require('../db/database');
-const { hashPassword, verifyPassword } = require('../crypto/hasher');
-const { signToken } = require('../crypto/jwt');
+import db from '../db/database.js';
+import { hashPassword, verifyPassword } from '../crypto/hasher.js';
+import { signToken } from '../crypto/jwt.js';
 
 /**
  * Register a new user
  * POST /api/auth/register
  */
-function register(req, res) {
+export function register(req, res) {
     try {
         const { name, email, password, role = 'verifier', organization = '' } = req.body;
 
@@ -75,7 +75,7 @@ function register(req, res) {
  * Login user
  * POST /api/auth/login
  */
-function login(req, res) {
+export function login(req, res) {
     try {
         const { email, password } = req.body;
 
@@ -143,7 +143,7 @@ function login(req, res) {
  * Google Single Sign-On (Mock / OAuth integration)
  * POST /api/auth/google
  */
-function googleAuth(req, res) {
+export function googleAuth(req, res) {
     try {
         const { email, name, googleId, role = 'user', organization = '' } = req.body;
         const normalizedEmail = (email || 'google_user@truthseal.io').trim().toLowerCase();
@@ -197,7 +197,7 @@ function googleAuth(req, res) {
  * Get current authenticated user profile
  * GET /api/auth/me
  */
-function getProfile(req, res) {
+export function getProfile(req, res) {
     return res.json({
         success: true,
         user: req.user
@@ -208,7 +208,7 @@ function getProfile(req, res) {
  * Forgot password handler
  * POST /api/auth/forgot-password
  */
-function forgotPassword(req, res) {
+export function forgotPassword(req, res) {
     const { email } = req.body;
     if (!email) {
         return res.status(400).json({ success: false, error: 'Email address is required.' });
@@ -229,7 +229,7 @@ function forgotPassword(req, res) {
     });
 }
 
-module.exports = {
+export default {
     register,
     login,
     googleAuth,
