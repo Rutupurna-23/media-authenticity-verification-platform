@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+functions/node_modules/
+
+# Production builds
+dist/
+build/
+coverage/
+functions/lib/
+
+# Local Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+!.env.example
+*.pem
+*.key
+*service-account*.json
+*credentials*.json
+
+# Firebase & Emulators
+.firebase/
+firestore-debug.log
+ui-debug.log
+firebase-debug.log
+firebase-debug.*.log
+
+# System & OS
+.DS_Store
+Thumbs.db
+*.log
+_backups/
+
+# Local development cryptographic key material
+.dev-kms-keys.json
+.dev-kms-keys.*

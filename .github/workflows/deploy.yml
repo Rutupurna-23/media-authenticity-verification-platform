@@ -1,0 +1,72 @@
+name: Production Deployment (CD)
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      deploy_target:
+        description: 'Target deployment components (all, functions, firestore, storage)'
+        required: true
+        default: 'all'
+
+jobs:
+  validate-and-deploy:
+    name: Validate, Build & Deploy to Firebase
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 20 Environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Setup Java Runtime (for Emulator Validation)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+
+      - name: Install Dependencies
+        run: |
+          npm ci
+          npm --prefix functions ci
+
+      - name: Run Typecheck & Linter Validation
+        run: npm run lint
+
+      - name: Build Root Application
+        run: npm run build
+
+      - name: Compile Cloud Functions TypeScript
+        run: npm --prefix functions run build
+
+      - name: Execute Full Regression Suite Before Deployment
+        run: npx firebase-tools emulators:exec --only firestore,storage "npm test"
+        env:
+          CI: true
+          NODE_ENV: test
+          FIREBASE_PROJECT_ID: media-authenticity-platform
+
+      - name: Authenticate with Google Cloud / Firebase
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+
+      - name: Deploy to Firebase Production
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+        run: |
+          echo "Deploying verified resources to Firebase project: ${{ vars.FIREBASE_PROJECT_ID || 'media-authenticity-platform' }}"
+          npx firebase-tools deploy --only firestore:rules,storage,functions --project "${{ vars.FIREBASE_PROJECT_ID || 'media-authenticity-platform' }}" --non-interactive
+
+      - name: Skip Real Deployment Notice
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT == '' }}
+        run: |
+          echo "::notice title=Production Deployment Skipped::FIREBASE_SERVICE_ACCOUNT secret is not configured in repository settings. CI validation, builds, and test suites passed successfully."
