@@ -1,4 +1,4 @@
-import { firestore } from '../../../functions/src/auth/firebaseAdmin.js';
+import { firestore } from '../../functions/src/auth/firebaseAdmin.js';
 import { VerificationLog } from '../../types.js';
 
 export class VerificationLogRepository {

@@ -7,7 +7,7 @@ import {
   seedInitialFirestoreData,
 } from './firestore/index.js';
 import { mediaStorageService, StorageDownloadResult } from './storage/mediaStorageService.js';
-import { AuthContext } from '../../functions/src/auth/authService.js';
+import { AuthContext } from '../functions/src/auth/authService.js';
 import { InMemoryDB } from './db.inmemory.backup.js';
 
 /**

@@ -1,4 +1,4 @@
-import { db } from '../src/backend/db.js';
+import { db } from '../backend/db.js';
 import { NodeCryptoKMSProvider, kmsProvider } from '../functions/src/media/kmsProvider.js';
 import { MediaService } from '../functions/src/media/mediaService.js';
 import { VerificationService } from '../functions/src/verification/verificationService.js';

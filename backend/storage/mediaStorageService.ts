@@ -1,6 +1,6 @@
 import path from 'path';
-import { adminStorage } from '../../../functions/src/auth/firebaseAdmin.js';
-import { AuthService, AuthContext } from '../../../functions/src/auth/authService.js';
+import { adminStorage } from '../../functions/src/auth/firebaseAdmin.js';
+import { AuthService, AuthContext } from '../../functions/src/auth/authService.js';
 
 export interface StorageUploadParams {
   institutionId: string;

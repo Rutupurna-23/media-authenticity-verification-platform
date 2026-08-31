@@ -1,6 +1,6 @@
-import { firestore } from '../../../functions/src/auth/firebaseAdmin.js';
+import { firestore } from '../../functions/src/auth/firebaseAdmin.js';
 import { Credential } from '../../types.js';
-import { AuthService, AuthContext } from '../../../functions/src/auth/authService.js';
+import { AuthService, AuthContext } from '../../functions/src/auth/authService.js';
 
 export class CredentialRepository {
   private collection = firestore.collection('credentials');

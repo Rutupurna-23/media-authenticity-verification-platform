@@ -1,9 +1,9 @@
-import { institutionRepository } from '../src/backend/firestore/institutionRepository.js';
-import { credentialRepository } from '../src/backend/firestore/credentialRepository.js';
-import { mediaRepository } from '../src/backend/firestore/mediaRepository.js';
-import { verificationLogRepository } from '../src/backend/firestore/verificationLogRepository.js';
-import { seedInitialFirestoreData } from '../src/backend/firestore/seedInitialData.js';
-import { mediaStorageService } from '../src/backend/storage/mediaStorageService.js';
+import { institutionRepository } from '../backend/firestore/institutionRepository.js';
+import { credentialRepository } from '../backend/firestore/credentialRepository.js';
+import { mediaRepository } from '../backend/firestore/mediaRepository.js';
+import { verificationLogRepository } from '../backend/firestore/verificationLogRepository.js';
+import { seedInitialFirestoreData } from '../backend/firestore/seedInitialData.js';
+import { mediaStorageService } from '../backend/storage/mediaStorageService.js';
 import { AuthService, AuthContext } from '../functions/src/auth/authService.js';
 import { CredentialService } from '../functions/src/credentials/credentialService.js';
 import { MediaService } from '../functions/src/media/mediaService.js';
@@ -16,12 +16,12 @@ import {
   verifyMediaHandler,
   revokeCredentialHandler,
 } from '../functions/src/index.js';
-import { logger, sanitizeLogContext } from '../src/backend/utils/logger.js';
-import { SlidingWindowRateLimiter, createRateLimiter } from '../src/backend/middleware/rateLimiter.js';
-import { withTimeout } from '../src/backend/utils/timeout.js';
-import { db } from '../src/backend/db.js';
-import { retryWithBackoff, isRetryableError } from '../src/backend/utils/retry.js';
-import { validateConfig } from '../src/backend/config/envValidator.js';
+import { logger, sanitizeLogContext } from '../backend/utils/logger.js';
+import { SlidingWindowRateLimiter, createRateLimiter } from '../backend/middleware/rateLimiter.js';
+import { withTimeout } from '../backend/utils/timeout.js';
+import { db } from '../backend/db.js';
+import { retryWithBackoff, isRetryableError } from '../backend/utils/retry.js';
+import { validateConfig } from '../backend/config/envValidator.js';
 import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';

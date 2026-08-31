@@ -8,9 +8,9 @@ import {
   kmsProvider,
   NodeCryptoKMSProvider,
   hydrateDevelopmentKmsVault,
-} from '../../../functions/src/media/kmsProvider.js';
+} from '../../functions/src/media/kmsProvider.js';
 import { Institution, Credential } from '../../types.js';
-import { AuthContext } from '../../../functions/src/auth/authService.js';
+import { AuthContext } from '../../functions/src/auth/authService.js';
 
 const SYSTEM_ADMIN_AUTH: AuthContext = {
   uid: 'system-admin-init',

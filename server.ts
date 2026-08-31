@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import multer from 'multer';
 import { performance } from 'perf_hooks';
 import { createServer as createViteServer } from 'vite';
-import { db } from './src/backend/db.js';
+import { db } from './backend/db.js';
 import {
   uploadMediaHandler,
   signMediaHandler,
@@ -17,15 +17,15 @@ import {
   requireAuth,
   optionalAuth,
   requireRole,
-} from './src/backend/authMiddleware.js';
-import { MediaType } from './src/types.js';
-import { logger } from './src/backend/utils/logger.js';
-import { createRateLimiter } from './src/backend/middleware/rateLimiter.js';
-import { validateConfig } from './src/backend/config/envValidator.js';
+} from './backend/authMiddleware.js';
+import { MediaType } from './types.js';
+import { logger } from './backend/utils/logger.js';
+import { createRateLimiter } from './backend/middleware/rateLimiter.js';
+import { validateConfig } from './backend/config/envValidator.js';
 
-import sihAuthRoutes from './src/backend/sih/routes/authRoutes.js';
-import sihSealRoutes from './src/backend/sih/routes/sealRoutes.js';
-import sihLedgerRoutes from './src/backend/sih/routes/ledgerRoutes.js';
+import sihAuthRoutes from './backend/sih/routes/authRoutes.js';
+import sihSealRoutes from './backend/sih/routes/sealRoutes.js';
+import sihLedgerRoutes from './backend/sih/routes/ledgerRoutes.js';
 
 const upload = multer({
   storage: multer.memoryStorage(),
