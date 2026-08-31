@@ -23,6 +23,10 @@ export async function seedInitialFirestoreData(): Promise<void> {
     // 1. ALWAYS hydrate the development KMS vault on every startup/restart
     hydrateDevelopmentKmsVault();
 
+    if (!process.env.FIRESTORE_EMULATOR_HOST) {
+      return;
+    }
+
     const existing = await institutionRepository.list();
     if (existing && existing.length > 0) {
 

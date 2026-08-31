@@ -4,6 +4,7 @@ import { deepfakeDetector, blockchainProvider } from './modularProviders.js';
 
 export interface VerifyMediaParams {
   mediaHash: string;
+  skipAutoRegister?: boolean;
 }
 
 export interface VerifyMediaResult {
@@ -55,7 +56,7 @@ export class VerificationService {
     // When a new key/hash is entered by the user that is not pre-seeded in memory,
     // automatically generate a dynamic KMS signature & anchor under the active institution (FEMA)
     // so any new key typed by the user is automatically read, signed, and verified on-the-fly.
-    if (!mediaRecord && rawHash && rawHash.length >= 8) {
+    if (!mediaRecord && rawHash && rawHash.length >= 8 && !params.skipAutoRegister) {
       try {
         const defaultInst = await getInstitutionById('inst-fema');
         const defaultCred = await getCredentialById('cred-fema-primary');

@@ -220,8 +220,8 @@ export class InMemoryDB {
     return Array.from(this.institutions.values());
   }
 
-  public async createInstitution(inst: Omit<Institution, 'id'>): Promise<Institution> {
-    const id = `inst-${Date.now()}`;
+  public async createInstitution(inst: Omit<Institution, 'id'> & { id?: string }): Promise<Institution> {
+    const id = inst.id || `inst-${Date.now()}`;
     const newInst: Institution = { ...inst, id };
     this.institutions.set(id, newInst);
     return newInst;
@@ -239,8 +239,8 @@ export class InMemoryDB {
     return all;
   }
 
-  public async createCredential(cred: Omit<Credential, 'id'>): Promise<Credential> {
-    const id = `cred-${Date.now()}`;
+  public async createCredential(cred: Omit<Credential, 'id'> & { id?: string }): Promise<Credential> {
+    const id = cred.id || `cred-${Date.now()}`;
     const newCred: Credential = { ...cred, id };
     this.credentials.set(id, newCred);
     return newCred;
@@ -278,11 +278,11 @@ export class InMemoryDB {
     return all;
   }
 
-  public async createMediaRecord(record: Omit<MediaRecord, 'id'>): Promise<MediaRecord> {
-    const id = `rec-${Date.now()}`;
-    const newRecord: MediaRecord = { ...record, id };
-    this.mediaRecords.set(id, newRecord);
-    return newRecord;
+  public createMediaRecord(record: Omit<MediaRecord, 'id'> & { id?: string }): MediaRecord {
+    const id = record.id || `rec-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    const newRec: MediaRecord = { id, ...record };
+    this.mediaRecords.set(id, newRec);
+    return newRec;
   }
 
   public async updateMediaRecord(id: string, updates: Partial<MediaRecord>): Promise<MediaRecord> {
@@ -318,7 +318,7 @@ export class InMemoryDB {
   public getStorageFile(storagePath: string) {
     const file = this.storageFiles.get(storagePath);
     if (!file) {
-      throw new Error(`File '${storagePath}' not found in storage.`);
+      throw new Error(`NOT_FOUND: Storage object '${storagePath}' not found in storage.`);
     }
     return file;
   }

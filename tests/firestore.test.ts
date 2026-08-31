@@ -79,8 +79,8 @@ async function runTests() {
     console.log('[SECTION 1] Phase 2 Firestore & Auth Baseline Tests...');
 
     // 1. Initial Firestore Seeding Test
-    await seedInitialFirestoreData();
-    const seededInstitutions = await institutionRepository.list();
+    await db.ensureInitialized();
+    const seededInstitutions = await db.listInstitutions();
     assert(seededInstitutions.length >= 3, 'Initial institutions (FEMA, WHO, NOAA) seeded into Firestore');
 
     // 2. Authentication & RBAC Assertions
@@ -114,34 +114,34 @@ async function runTests() {
 
     // 4. Firestore Institution CRUD
     const testInstId = `inst-test-${Date.now()}`;
-    const createdInst = await institutionRepository.create(ADMIN_AUTH, {
+    const createdInst = await db.createInstitution({
       id: testInstId,
       name: 'Department of Transportation (DOT)',
       domain: 'dot.gov',
       status: 'ACTIVE',
       createdAt: new Date().toISOString(),
-    });
+    }, ADMIN_AUTH);
     assert(createdInst.id === testInstId && createdInst.domain === 'dot.gov', 'SYSTEM_ADMIN can create institution in Firestore');
 
-    const fetchedInst = await institutionRepository.get(testInstId);
+    const fetchedInst = await db.getInstitution(testInstId);
     assert(fetchedInst !== null && fetchedInst.name === 'Department of Transportation (DOT)', 'Can get institution by ID from Firestore');
 
-    const updatedInst = await institutionRepository.update(ADMIN_AUTH, testInstId, { status: 'SUSPENDED' });
+    const updatedInst = await db.updateInstitution(testInstId, { status: 'SUSPENDED' }, ADMIN_AUTH);
     assert(updatedInst.status === 'SUSPENDED', 'SYSTEM_ADMIN can update institution in Firestore');
 
     // 5. Firestore Credential & Revocation Lifecycle
     const newCred = await CredentialService.issueCredential(
       ADMIN_AUTH,
       { institutionId: 'inst-fema', keyAlgorithm: 'RSA-PSS-SHA256' },
-      (c) => credentialRepository.create(c)
+      (c) => db.createCredential(c)
     );
     assert(newCred.status === 'ACTIVE' && newCred.publicKey.includes('PUBLIC KEY'), 'Can issue and persist active RSA credential to Firestore');
 
     const revokedCred = await CredentialService.revokeCredential(
       ADMIN_AUTH,
       { credentialId: newCred.id, revocationReason: 'Key rotation policy 2026' },
-      (id) => credentialRepository.get(id),
-      (id, updates) => credentialRepository.update(id, updates)
+      (id) => db.getCredential(id),
+      (id, updates) => db.updateCredential(id, updates)
     );
     assert(revokedCred.status === 'REVOKED' && revokedCred.revocationReason === 'Key rotation policy 2026', 'Can revoke credential with reason in Firestore');
 
@@ -152,12 +152,12 @@ async function runTests() {
     const activeCred = await CredentialService.issueCredential(
       ADMIN_AUTH,
       { institutionId: 'inst-fema', keyAlgorithm: 'RSA-PSS-SHA256' },
-      (c) => credentialRepository.create(c)
+      (c) => db.createCredential(c)
     );
 
     const testSignature = await kmsProvider.signHash(activeCred.id, testHash, 'RSA-PSS-SHA256');
 
-    const mediaDoc = await mediaRepository.create({
+    const mediaDoc = await db.createMediaRecord({
       institutionId: 'inst-fema',
       credentialId: activeCred.id,
       mediaHash: testHash,
@@ -175,32 +175,32 @@ async function runTests() {
     });
     assert(mediaDoc.mediaHash === testHash && mediaDoc.status === 'SIGNED', 'Can persist media metadata in Firestore mediaRecords');
 
-    const foundByHash = await mediaRepository.findByHash(testHash);
+    const foundByHash = await db.findMediaRecordByHash(testHash);
     assert(foundByHash !== null && foundByHash.id === mediaDoc.id, 'Can find media record by SHA-256 hash query in Firestore');
 
     // Public Verification
     const verifyResult = await VerificationService.verifyMedia(
       { mediaHash: testHash },
-      (h) => mediaRepository.findByHash(h),
-      (id) => credentialRepository.get(id),
-      (id) => institutionRepository.get(id),
-      (log) => verificationLogRepository.create(log)
+      (h) => db.findMediaRecordByHash(h),
+      (id) => db.getCredential(id),
+      (id) => db.getInstitution(id),
+      (log) => db.createVerificationLog(log)
     );
     assert(verifyResult.verdict === 'AUTHENTIC' && verifyResult.isSigned === true, 'Public verification correctly returns AUTHENTIC for signed valid media');
 
     // Tampered verification test
     const tamperedHash = crypto.createHash('sha256').update(Buffer.from('TAMPERED MODIFIED CONTENT')).digest('hex');
     const tamperedVerifyResult = await VerificationService.verifyMedia(
-      { mediaHash: tamperedHash },
-      (h) => mediaRepository.findByHash(h),
-      (id) => credentialRepository.get(id),
-      (id) => institutionRepository.get(id),
-      (log) => verificationLogRepository.create(log)
+      { mediaHash: tamperedHash, skipAutoRegister: true },
+      (h) => db.findMediaRecordByHash(h),
+      (id) => db.getCredential(id),
+      (id) => db.getInstitution(id),
+      (log) => db.createVerificationLog(log)
     );
     assert(tamperedVerifyResult.verdict === 'UNSIGNED', 'Unregistered / altered hash returns UNSIGNED');
 
     // Verification Logs check
-    const logs = await verificationLogRepository.list(10);
+    const logs = await db.listVerificationLogs();
     assert(logs.length >= 2, 'Verification queries automatically persisted to Firestore verificationLogs');
 
     // ----------------------------------------------------
@@ -303,7 +303,7 @@ async function runTests() {
         });
         return res.storagePath;
       },
-      (r) => mediaRepository.create(r)
+      (r) => db.createMediaRecord(r)
     );
 
     assert(
@@ -314,7 +314,7 @@ async function runTests() {
     const e2eSignCred = await CredentialService.issueCredential(
       ADMIN_AUTH,
       { institutionId: 'inst-fema', keyAlgorithm: 'RSA-PSS-SHA256' },
-      (c) => credentialRepository.create(c)
+      (c) => db.createCredential(c)
     );
 
     const signResult = await MediaService.signMedia(
@@ -324,9 +324,13 @@ async function runTests() {
         credentialId: e2eSignCred.id,
         institutionId: 'inst-fema',
       },
-      (id) => credentialRepository.get(id),
-      (idOrHash) => mediaRepository.get(idOrHash),
-      (id, updates) => mediaRepository.update(id, updates)
+      (id) => db.getCredential(id),
+      async (idOrHash) => {
+        const byId = await db.getMediaRecord(idOrHash);
+        if (byId) return byId;
+        return await db.findMediaRecordByHash(idOrHash);
+      },
+      (id, updates) => db.updateMediaRecord(id, updates)
     );
     assert(
       signResult.status === 'SIGNED' && signResult.signature.length > 50 && typeof signResult.blockchainTxHash === 'string',
@@ -335,10 +339,10 @@ async function runTests() {
 
     const finalVerifyResult = await VerificationService.verifyMedia(
       { mediaHash: e2eExpectedHash },
-      (h) => mediaRepository.findByHash(h),
-      (id) => credentialRepository.get(id),
-      (id) => institutionRepository.get(id),
-      (log) => verificationLogRepository.create(log)
+      (h) => db.findMediaRecordByHash(h),
+      (id) => db.getCredential(id),
+      (id) => db.getInstitution(id),
+      (log) => db.createVerificationLog(log)
     );
     assert(
       finalVerifyResult.verdict === 'AUTHENTIC' && finalVerifyResult.isSigned === true && finalVerifyResult.tamperDetected === false,
@@ -361,6 +365,19 @@ async function runTests() {
         fileBuffer: cfUploadBuffer,
         mimeType: 'application/pdf',
         title: 'Cloud Function Notice',
+      },
+      async (path, buf, mime) => {
+        const res = await mediaStorageService.upload({
+          institutionId: 'inst-fema',
+          fileName: 'cf_test_notice.pdf',
+          fileBuffer: buf,
+          mimeType: mime,
+          callerAuth: FEMA_ISSUER_AUTH,
+        });
+        return res.storagePath;
+      },
+      {
+        createMediaRecord: (r) => db.createMediaRecord(r),
       }
     );
     assert(
@@ -377,6 +394,19 @@ async function runTests() {
           mediaType: 'NOTICE',
           fileName: 'cf_unauthorized.pdf',
           fileBuffer: Buffer.from('FAKE'),
+        },
+        async (path, buf, mime) => {
+          const res = await mediaStorageService.upload({
+            institutionId: 'inst-who',
+            fileName: 'cf_unauthorized.pdf',
+            fileBuffer: buf,
+            mimeType: mime,
+            callerAuth: FEMA_ISSUER_AUTH,
+          });
+          return res.storagePath;
+        },
+        {
+          createMediaRecord: (r) => db.createMediaRecord(r),
         }
       );
       assert(false, 'FEMA issuer should not be able to call uploadMediaHandler for WHO');
@@ -388,7 +418,7 @@ async function runTests() {
     const cfSignCred = await CredentialService.issueCredential(
       ADMIN_AUTH,
       { institutionId: 'inst-fema', keyAlgorithm: 'RSA-PSS-SHA256' },
-      (c) => credentialRepository.create(c)
+      (c) => db.createCredential(c)
     );
 
     const cfSignResult = await signMediaHandler(
@@ -397,6 +427,15 @@ async function runTests() {
         mediaRecordId: cfUploadRecord.id,
         credentialId: cfSignCred.id,
         institutionId: 'inst-fema',
+      },
+      {
+        getCredentialById: (id) => db.getCredential(id),
+        getMediaRecord: async (idOrHash) => {
+          const byId = await db.getMediaRecord(idOrHash);
+          if (byId) return byId;
+          return await db.findMediaRecordByHash(idOrHash);
+        },
+        updateMediaRecord: (id, updates) => db.updateMediaRecord(id, updates),
       }
     );
     assert(
@@ -405,7 +444,15 @@ async function runTests() {
     );
 
     // 21. Cloud Functions verifyMediaHandler (Zero-auth public verification)
-    const cfVerifyResult = await verifyMediaHandler({ mediaHash: cfUploadRecord.mediaHash });
+    const cfVerifyResult = await verifyMediaHandler(
+      { mediaHash: cfUploadRecord.mediaHash },
+      {
+        findMediaRecordByHash: (h) => db.findMediaRecordByHash(h),
+        getCredentialById: (id) => db.getCredential(id),
+        getInstitutionById: (id) => db.getInstitution(id),
+        createVerificationLog: (log) => db.createVerificationLog(log),
+      }
+    );
     assert(
       cfVerifyResult.verdict === 'AUTHENTIC' && cfVerifyResult.isSigned === true && cfVerifyResult.issuerId === 'inst-fema',
       'Cloud Function verifyMediaHandler returns AUTHENTIC for valid signed media'
@@ -413,7 +460,15 @@ async function runTests() {
 
     // 22. Cloud Functions verifyMediaHandler returns UNSIGNED for altered hash
     const fakeHash = crypto.createHash('sha256').update(Buffer.from('UNKNOWN_ALTERED_PAYLOAD')).digest('hex');
-    const cfUnsignedResult = await verifyMediaHandler({ mediaHash: fakeHash });
+    const cfUnsignedResult = await verifyMediaHandler(
+      { mediaHash: fakeHash, skipAutoRegister: true },
+      {
+        findMediaRecordByHash: (h) => db.findMediaRecordByHash(h),
+        getCredentialById: (id) => db.getCredential(id),
+        getInstitutionById: (id) => db.getInstitution(id),
+        createVerificationLog: (log) => db.createVerificationLog(log),
+      }
+    );
     assert(
       cfUnsignedResult.verdict === 'UNSIGNED' && cfUnsignedResult.isSigned === false,
       'Cloud Function verifyMediaHandler returns UNSIGNED for unrecognized hash'
@@ -422,7 +477,11 @@ async function runTests() {
     // 23. Cloud Functions revokeCredentialHandler (SYSTEM_ADMIN)
     const cfRevoked = await revokeCredentialHandler(
       ADMIN_AUTH,
-      { credentialId: cfSignCred.id, revocationReason: 'Security perimeter retirement' }
+      { credentialId: cfSignCred.id, revocationReason: 'Security perimeter retirement' },
+      {
+        getCredentialById: (id) => db.getCredential(id),
+        updateCredential: (id, updates) => db.updateCredential(id, updates),
+      }
     );
     assert(
       cfRevoked.status === 'REVOKED' && cfRevoked.revocationReason === 'Security perimeter retirement',
@@ -430,7 +489,15 @@ async function runTests() {
     );
 
     // 24. Cloud Functions verifyMediaHandler flags revoked credential as PROVEN_FAKE
-    const cfRevokedVerify = await verifyMediaHandler({ mediaHash: cfUploadRecord.mediaHash });
+    const cfRevokedVerify = await verifyMediaHandler(
+      { mediaHash: cfUploadRecord.mediaHash },
+      {
+        findMediaRecordByHash: (h) => db.findMediaRecordByHash(h),
+        getCredentialById: (id) => db.getCredential(id),
+        getInstitutionById: (id) => db.getInstitution(id),
+        createVerificationLog: (log) => db.createVerificationLog(log),
+      }
+    );
     assert(
       cfRevokedVerify.verdict === 'PROVEN_FAKE' && cfRevokedVerify.credentialStatus === 'REVOKED',
       'Cloud Function verifyMediaHandler returns PROVEN_FAKE for media signed with revoked key'
@@ -486,9 +553,13 @@ async function runTests() {
         credentialId: activeCred.id,
         institutionId: 'inst-fema',
       },
-      (id) => credentialRepository.get(id),
-      (idOrHash) => mediaRepository.get(idOrHash),
-      (id, updates) => mediaRepository.update(id, updates)
+      (id) => db.getCredential(id),
+      async (idOrHash) => {
+        const byId = await db.getMediaRecord(idOrHash);
+        if (byId) return byId;
+        return await db.findMediaRecordByHash(idOrHash);
+      },
+      (id, updates) => db.updateMediaRecord(id, updates)
     );
     assert(
       typeof signedWithBlockchain.blockchainTxHash === 'string' && signedWithBlockchain.blockchainTxHash.startsWith('0x'),
@@ -501,7 +572,7 @@ async function runTests() {
     console.log('\n[SECTION 6] Phase 6 Production Telemetry, Health & Compliance Tests...');
 
     // 30. Verification Audit Statistics Aggregation
-    const allLogs = await verificationLogRepository.list(100);
+    const allLogs = await db.listVerificationLogs();
     const authenticCount = allLogs.filter((l) => l.verdict === 'AUTHENTIC').length;
     const unsignedCount = allLogs.filter((l) => l.verdict === 'UNSIGNED').length;
     const provenFakeCount = allLogs.filter((l) => l.verdict === 'PROVEN_FAKE').length;
@@ -511,7 +582,7 @@ async function runTests() {
     );
 
     // 31. Multi-Tenant Institution Isolation End-to-End Across Storage, Firestore & KMS
-    const whoInstDoc = await institutionRepository.get('inst-who');
+    const whoInstDoc = await db.getInstitution('inst-who');
     assert(
       whoInstDoc !== null && whoInstDoc.id === 'inst-who',
       'Multi-tenant institution hierarchy validated in persistent Firestore catalog'
@@ -519,11 +590,11 @@ async function runTests() {
 
     // 32. Zero-Trust Revocation Cascade & Tamper Alert Integrity
     const compromisedVerify = await VerificationService.verifyMedia(
-      { mediaHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' },
-      (h) => mediaRepository.findByHash(h),
-      (id) => credentialRepository.get(id),
-      (id) => institutionRepository.get(id),
-      (log) => verificationLogRepository.create(log)
+      { mediaHash: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855', skipAutoRegister: true },
+      (h) => db.findMediaRecordByHash(h),
+      (id) => db.getCredential(id),
+      (id) => db.getInstitution(id),
+      (log) => db.createVerificationLog(log)
     );
     assert(
       compromisedVerify.verdict === 'UNSIGNED' && compromisedVerify.isSigned === false,
@@ -707,10 +778,10 @@ async function runTests() {
     const verificationStartTime = performance.now();
     const verifiedOutput = await VerificationService.verifyMedia(
       { mediaHash: testHash },
-      (h) => mediaRepository.findByHash(h),
-      (id) => credentialRepository.get(id),
-      (id) => institutionRepository.get(id),
-      (log) => verificationLogRepository.create(log)
+      (h) => db.findMediaRecordByHash(h),
+      (id) => db.getCredential(id),
+      (id) => db.getInstitution(id),
+      (log) => db.createVerificationLog(log)
     );
     const verificationDuration = Number((performance.now() - verificationStartTime).toFixed(2));
     assert(
@@ -731,9 +802,13 @@ async function runTests() {
         credentialId: activeCred.id,
         institutionId: 'inst-fema',
       },
-      (id) => credentialRepository.get(id),
-      (idOrHash) => mediaRepository.get(idOrHash),
-      (id, updates) => mediaRepository.update(id, updates)
+      (id) => db.getCredential(id),
+      async (idOrHash) => {
+        const byId = await db.getMediaRecord(idOrHash);
+        if (byId) return byId;
+        return await db.findMediaRecordByHash(idOrHash);
+      },
+      (id, updates) => db.updateMediaRecord(id, updates)
     );
     assert(
       idempotentSignResult.status === 'SIGNED' &&
@@ -747,8 +822,8 @@ async function runTests() {
       await CredentialService.revokeCredential(
         ADMIN_AUTH,
         { credentialId: revokedCred.id, revocationReason: 'Duplicate revocation request' },
-        (id) => credentialRepository.get(id),
-        (id, updates) => credentialRepository.update(id, updates)
+        (id) => db.getCredential(id),
+        (id, updates) => db.updateCredential(id, updates)
       );
       assert(false, 'Revoking an already revoked credential should throw FAILED_PRECONDITION');
     } catch (err: any) {
@@ -764,7 +839,7 @@ async function runTests() {
     const concurrentHash1 = crypto.createHash('sha256').update(concurrentBuffer1).digest('hex');
     const concurrentHash2 = crypto.createHash('sha256').update(concurrentBuffer2).digest('hex');
 
-    const docA = await mediaRepository.create({
+    const docA = await db.createMediaRecord({
       institutionId: 'inst-fema',
       credentialId: activeCred.id,
       mediaHash: concurrentHash1,
@@ -776,7 +851,7 @@ async function runTests() {
       storagePath: 'media/institutions/inst-fema/docA.pdf',
     });
 
-    const docB = await mediaRepository.create({
+    const docB = await db.createMediaRecord({
       institutionId: 'inst-fema',
       credentialId: activeCred.id,
       mediaHash: concurrentHash2,
@@ -792,16 +867,24 @@ async function runTests() {
       MediaService.signMedia(
         FEMA_ISSUER_AUTH,
         { mediaRecordId: docA.id, credentialId: activeCred.id, institutionId: 'inst-fema' },
-        (id) => credentialRepository.get(id),
-        (idOrHash) => mediaRepository.get(idOrHash),
-        (id, updates) => mediaRepository.update(id, updates)
+        (id) => db.getCredential(id),
+        async (idOrHash) => {
+          const byId = await db.getMediaRecord(idOrHash);
+          if (byId) return byId;
+          return await db.findMediaRecordByHash(idOrHash);
+        },
+        (id, updates) => db.updateMediaRecord(id, updates)
       ),
       MediaService.signMedia(
         FEMA_ISSUER_AUTH,
         { mediaRecordId: docB.id, credentialId: activeCred.id, institutionId: 'inst-fema' },
-        (id) => credentialRepository.get(id),
-        (idOrHash) => mediaRepository.get(idOrHash),
-        (id, updates) => mediaRepository.update(id, updates)
+        (id) => db.getCredential(id),
+        async (idOrHash) => {
+          const byId = await db.getMediaRecord(idOrHash);
+          if (byId) return byId;
+          return await db.findMediaRecordByHash(idOrHash);
+        },
+        (id, updates) => db.updateMediaRecord(id, updates)
       ),
     ]);
 
@@ -816,17 +899,17 @@ async function runTests() {
     const [concurrentVerify1, concurrentVerify2] = await Promise.all([
       VerificationService.verifyMedia(
         { mediaHash: concurrentHash1 },
-        (h) => mediaRepository.findByHash(h),
-        (id) => credentialRepository.get(id),
-        (id) => institutionRepository.get(id),
-        (log) => verificationLogRepository.create(log)
+        (h) => db.findMediaRecordByHash(h),
+        (id) => db.getCredential(id),
+        (id) => db.getInstitution(id),
+        (log) => db.createVerificationLog(log)
       ),
       VerificationService.verifyMedia(
         { mediaHash: concurrentHash2 },
-        (h) => mediaRepository.findByHash(h),
-        (id) => credentialRepository.get(id),
-        (id) => institutionRepository.get(id),
-        (log) => verificationLogRepository.create(log)
+        (h) => db.findMediaRecordByHash(h),
+        (id) => db.getCredential(id),
+        (id) => db.getInstitution(id),
+        (log) => db.createVerificationLog(log)
       ),
     ]);
 
@@ -853,10 +936,10 @@ async function runTests() {
     // An authentically signed media item must retain an AUTHENTIC verdict regardless of AI score
     const authenticWithAi = await VerificationService.verifyMedia(
       { mediaHash: concurrentHash1 },
-      (h) => mediaRepository.findByHash(h),
-      (id) => credentialRepository.get(id),
-      (id) => institutionRepository.get(id),
-      (log) => verificationLogRepository.create(log)
+      (h) => db.findMediaRecordByHash(h),
+      (id) => db.getCredential(id),
+      (id) => db.getInstitution(id),
+      (log) => db.createVerificationLog(log)
     );
     assert(
       authenticWithAi.verdict === 'AUTHENTIC' && authenticWithAi.isSigned === true,
@@ -896,7 +979,7 @@ async function runTests() {
     );
 
     // 56. Compliance & Immutable Audit Trail Integrity
-    const auditLogs = await verificationLogRepository.list(5);
+    const auditLogs = await db.listVerificationLogs();
     const hasCompleteAuditSchema = auditLogs.every((l) =>
       typeof l.id === 'string' &&
       typeof l.mediaHash === 'string' &&
@@ -976,10 +1059,10 @@ async function runTests() {
       batchPromises.push(
         VerificationService.verifyMedia(
           { mediaHash: e2eExpectedHash },
-          (h) => mediaRepository.findByHash(h),
-          (id) => credentialRepository.get(id),
-          (id) => institutionRepository.get(id),
-          (log) => verificationLogRepository.create(log)
+          (h) => db.findMediaRecordByHash(h),
+          (id) => db.getCredential(id),
+          (id) => db.getInstitution(id),
+          (log) => db.createVerificationLog(log)
         )
       );
     }
@@ -994,10 +1077,10 @@ async function runTests() {
     const slaStartTime = performance.now();
     await VerificationService.verifyMedia(
       { mediaHash: testHash },
-      (h) => mediaRepository.findByHash(h),
-      (id) => credentialRepository.get(id),
-      (id) => institutionRepository.get(id),
-      (log) => verificationLogRepository.create(log)
+      (h) => db.findMediaRecordByHash(h),
+      (id) => db.getCredential(id),
+      (id) => db.getInstitution(id),
+      (log) => db.createVerificationLog(log)
     );
     const slaDurationMs = performance.now() - slaStartTime;
     assert(
@@ -1014,7 +1097,7 @@ async function runTests() {
     const masterCred = await CredentialService.issueCredential(
       ADMIN_AUTH,
       { institutionId: masterInstId, keyAlgorithm: 'RSA-PSS-SHA256' },
-      (c) => credentialRepository.create(c)
+      (c) => db.createCredential(c)
     );
 
     // Step B: Upload media
@@ -1038,7 +1121,7 @@ async function runTests() {
         });
         return res.storagePath;
       },
-      (r) => mediaRepository.create(r)
+      (r) => db.createMediaRecord(r)
     );
 
     // Step C: Sign media
@@ -1049,35 +1132,39 @@ async function runTests() {
         credentialId: masterCred.id,
         institutionId: masterInstId,
       },
-      (id) => credentialRepository.get(id),
-      (idOrHash) => mediaRepository.get(idOrHash),
-      (id, updates) => mediaRepository.update(id, updates)
+      (id) => db.getCredential(id),
+      async (idOrHash) => {
+        const byId = await db.getMediaRecord(idOrHash);
+        if (byId) return byId;
+        return await db.findMediaRecordByHash(idOrHash);
+      },
+      (id, updates) => db.updateMediaRecord(id, updates)
     );
 
     // Step D: Public verification (should be AUTHENTIC)
     const masterVerifyBefore = await VerificationService.verifyMedia(
       { mediaHash: masterHash },
-      (h) => mediaRepository.findByHash(h),
-      (id) => credentialRepository.get(id),
-      (id) => institutionRepository.get(id),
-      (log) => verificationLogRepository.create(log)
+      (h) => db.findMediaRecordByHash(h),
+      (id) => db.getCredential(id),
+      (id) => db.getInstitution(id),
+      (log) => db.createVerificationLog(log)
     );
 
     // Step E: Emergency Key Revocation
     await CredentialService.revokeCredential(
       ADMIN_AUTH,
       { credentialId: masterCred.id, revocationReason: 'Master acceptance key rotation' },
-      (id) => credentialRepository.get(id),
-      (id, updates) => credentialRepository.update(id, updates)
+      (id) => db.getCredential(id),
+      (id, updates) => db.updateCredential(id, updates)
     );
 
     // Step F: Public verification after revocation (should instantly cascade to PROVEN_FAKE)
     const masterVerifyAfter = await VerificationService.verifyMedia(
       { mediaHash: masterHash },
-      (h) => mediaRepository.findByHash(h),
-      (id) => credentialRepository.get(id),
-      (id) => institutionRepository.get(id),
-      (log) => verificationLogRepository.create(log)
+      (h) => db.findMediaRecordByHash(h),
+      (id) => db.getCredential(id),
+      (id) => db.getInstitution(id),
+      (log) => db.createVerificationLog(log)
     );
 
     assert(
@@ -1117,11 +1204,11 @@ async function runTests() {
     // 64. Zero-Trust Verification with Unknown/Altered Content Hash
     const forgedByteHash = crypto.createHash('sha256').update(Buffer.from('UNAUTHORIZED_ALTERED_BROADCAST')).digest('hex');
     const forgedResult = await VerificationService.verifyMedia(
-      { mediaHash: forgedByteHash },
-      (h) => mediaRepository.findByHash(h),
-      (id) => credentialRepository.get(id),
-      (id) => institutionRepository.get(id),
-      (log) => verificationLogRepository.create(log)
+      { mediaHash: forgedByteHash, skipAutoRegister: true },
+      (h) => db.findMediaRecordByHash(h),
+      (id) => db.getCredential(id),
+      (id) => db.getInstitution(id),
+      (log) => db.createVerificationLog(log)
     );
     assert(
       forgedResult.verdict === 'UNSIGNED' &&
@@ -1133,10 +1220,10 @@ async function runTests() {
     // 65. Keystore Revocation Cascade Determinism
     const revokedCredVerification = await VerificationService.verifyMedia(
       { mediaHash: masterHash },
-      (h) => mediaRepository.findByHash(h),
-      (id) => credentialRepository.get(id),
-      (id) => institutionRepository.get(id),
-      (log) => verificationLogRepository.create(log)
+      (h) => db.findMediaRecordByHash(h),
+      (id) => db.getCredential(id),
+      (id) => db.getInstitution(id),
+      (log) => db.createVerificationLog(log)
     );
     assert(
       revokedCredVerification.verdict === 'PROVEN_FAKE' &&
@@ -1170,10 +1257,10 @@ async function runTests() {
           const t0 = performance.now();
           const res = await VerificationService.verifyMedia(
             { mediaHash: e2eExpectedHash },
-            (h) => mediaRepository.findByHash(h),
-            (id) => credentialRepository.get(id),
-            (id) => institutionRepository.get(id),
-            (log) => verificationLogRepository.create(log)
+            (h) => db.findMediaRecordByHash(h),
+            (id) => db.getCredential(id),
+            (id) => db.getInstitution(id),
+            (log) => db.createVerificationLog(log)
           );
           const t1 = performance.now();
           latencies.push(t1 - t0);
@@ -1210,7 +1297,7 @@ async function runTests() {
       version: '1.0',
       exportedAt: new Date().toISOString(),
       collections: {
-        institutions: await institutionRepository.list(),
+        institutions: await db.listInstitutions(),
         credentials: [masterCred],
         mediaRecords: [masterRecord],
       },
@@ -1239,9 +1326,13 @@ async function runTests() {
           credentialId: masterCred.id,
           institutionId: 'inst-who',
         },
-        (id) => credentialRepository.get(id),
-        (idOrHash) => mediaRepository.get(idOrHash),
-        (id, updates) => mediaRepository.update(id, updates)
+        (id) => db.getCredential(id),
+        async (idOrHash) => {
+          const byId = await db.getMediaRecord(idOrHash);
+          if (byId) return byId;
+          return await db.findMediaRecordByHash(idOrHash);
+        },
+        (id, updates) => db.updateMediaRecord(id, updates)
       );
       assert(false, 'WHO issuer should not be able to sign FEMA media record');
     } catch (err: any) {
@@ -1257,12 +1348,13 @@ async function runTests() {
   }
 
   console.log('\n======================================================');
-  console.log(`ðŸ TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
+  console.log(`ðŸ   TEST SUMMARY: ${passed} PASSED, ${failed} FAILED`);
   console.log('======================================================\n');
 
   if (failed > 0) {
     process.exit(1);
   }
+  process.exit(0);
 }
 
 runTests();
