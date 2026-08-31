@@ -35,6 +35,8 @@ export const PublicVerification: React.FC<PublicVerificationProps> = ({ mediaRec
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const resultRef = React.useRef<HTMLDivElement>(null);
+
   // Compute SHA-256 in browser using Web Crypto API
   const calculateFileHash = async (file: File): Promise<string> => {
     const arrayBuffer = await file.arrayBuffer();
@@ -61,7 +63,15 @@ export const PublicVerification: React.FC<PublicVerificationProps> = ({ mediaRec
 
   const handleVerify = async (hashToTest?: string) => {
     const targetHash = (hashToTest || hashInput || calculatedClientHash).trim();
-    if (!targetHash && !selectedFile) {
+
+    // If explicit hash to test or typed hash differs from file hash, clear file attachment
+    let useFile = selectedFile;
+    if (hashToTest || (hashInput && hashInput !== calculatedClientHash)) {
+      useFile = null;
+      setSelectedFile(null);
+    }
+
+    if (!targetHash && !useFile) {
       setError('Please provide a media file or SHA-256 hash to verify.');
       return;
     }
@@ -73,9 +83,9 @@ export const PublicVerification: React.FC<PublicVerificationProps> = ({ mediaRec
     try {
       let response: Response;
 
-      if (selectedFile && !hashToTest) {
+      if (useFile && !hashToTest) {
         const formData = new FormData();
-        formData.append('file', selectedFile);
+        formData.append('file', useFile);
         formData.append('mediaHash', targetHash);
         response = await fetch('/api/media/verify', {
           method: 'POST',
@@ -104,6 +114,11 @@ export const PublicVerification: React.FC<PublicVerificationProps> = ({ mediaRec
       const data: VerificationResultPayload = await response.json();
       setResult(data);
       onRefresh();
+
+      // Smooth scroll down to result card automatically
+      setTimeout(() => {
+        resultRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
     } catch (err: any) {
       setError(err.message || 'An error occurred during media verification.');
     } finally {
@@ -316,6 +331,7 @@ export const PublicVerification: React.FC<PublicVerificationProps> = ({ mediaRec
       <AnimatePresence mode="wait">
         {result && (
           <motion.div
+            ref={resultRef}
             key={result.logId || result.mediaHash}
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
