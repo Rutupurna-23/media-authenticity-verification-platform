@@ -34,3 +34,9 @@ _backups/
 # Local development cryptographic key material
 .dev-kms-keys.json
 .dev-kms-keys.*
+
+# SQLite Local Database
+*.db
+*.db-shm
+*.db-wal
+src/backend/data/

@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, Building2, Lock, Cpu, Search } from 'lucide-react';
+import { ShieldCheck, Building2, Lock, Cpu, Search, LogOut, User } from 'lucide-react';
 import { UserRole, Institution } from '../types.js';
 
 interface NavbarProps {
@@ -11,6 +11,8 @@ interface NavbarProps {
   institutions: Institution[];
   selectedInstitutionId: string;
   setSelectedInstitutionId: (id: string) => void;
+  onLogout?: () => void;
+  userEmail?: string;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -21,6 +23,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   institutions,
   selectedInstitutionId,
   setSelectedInstitutionId,
+  onLogout,
+  userEmail,
 }) => {
   const tabs = [
     { id: 'verify' as const, label: 'Public Verification', icon: Search },
@@ -109,7 +113,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             })}
           </nav>
 
-          {/* Active Role Switcher */}
+          {/* Active Role Switcher & User Profile Controls */}
           <div className="flex items-center space-x-3">
             <motion.div
               className="flex items-center space-x-2 glass-surface border border-slate-800 px-3 py-1.5 rounded-xl text-xs shadow-inner"
@@ -142,10 +146,27 @@ export const Navbar: React.FC<NavbarProps> = ({
                 </select>
               )}
             </motion.div>
+
+            {/* Logged in User Badge & Logout */}
+            {userEmail && (
+              <div className="hidden sm:flex items-center space-x-2 text-xs font-mono bg-slate-900/80 border border-slate-800 px-2.5 py-1.5 rounded-xl text-slate-300">
+                <User className="w-3.5 h-3.5 text-cyan-400" />
+                <span className="max-w-[120px] truncate text-slate-200">{userEmail.split('@')[0]}</span>
+              </div>
+            )}
+
+            {onLogout && (
+              <button
+                onClick={onLogout}
+                title="Sign Out"
+                className="p-2 rounded-xl border border-slate-800 bg-slate-900/80 text-slate-400 hover:text-red-400 hover:border-red-500/40 hover:bg-red-950/40 transition-all cursor-pointer"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
       </div>
     </header>
   );
 };
-

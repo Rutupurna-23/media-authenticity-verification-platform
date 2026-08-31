@@ -1,0 +1,1864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TruthSeal | Login</title>
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* =====================================================
+           RESET
+        ===================================================== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background:
+                radial-gradient(circle at 43% 48%, rgba(0, 89, 255, 0.08), transparent 27%),
+                radial-gradient(circle at 75% 40%, rgba(79, 52, 255, 0.05), transparent 30%),
+                #020713;
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* =====================================================
+           HEADER
+        ===================================================== */
+        header {
+            width: 100%;
+            height: 82px;
+            display: flex;
+            align-items: center;
+            padding: 0 30px;
+            border-bottom: 1px solid rgba(92, 127, 207, 0.14);
+            background: rgba(2, 7, 19, 0.94);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 50;
+        }
+
+        /* BRAND */
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 260px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .brand-icon {
+            width: 46px;
+            height: 54px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .brand-name {
+            font-size: 30px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+        }
+
+        .brand-name span {
+            color: #4b72ff;
+        }
+
+        /* NAVIGATION */
+        nav {
+            display: flex;
+            align-items: center;
+            gap: 48px;
+            margin-left: 45px;
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #dce2ef;
+            font-size: 16px;
+            font-weight: 600;
+            transition: 0.25s ease;
+        }
+
+        nav a:hover {
+            color: #6485ff;
+        }
+
+        /* SECURE TEXT */
+        .secure {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #dce2ef;
+            font-size: 15px;
+            white-space: nowrap;
+        }
+
+        .secure svg {
+            width: 23px;
+            height: 23px;
+        }
+
+        /* =====================================================
+           MAIN LAYOUT
+        ===================================================== */
+        .main {
+            width: 100%;
+            max-width: 1550px;
+            min-height: calc(100vh - 157px);
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: minmax(420px, 1fr) minmax(330px, 390px) minmax(500px, 610px);
+            gap: 20px;
+            padding: 38px 30px 25px;
+            align-items: center;
+        }
+
+        /* =====================================================
+           LEFT CONTENT
+        ===================================================== */
+        .left-content {
+            position: relative;
+            z-index: 5;
+            padding-top: 10px;
+            min-width: 0;
+        }
+
+        .headline {
+            font-size: clamp(48px, 4.2vw, 66px);
+            line-height: 1.05;
+            font-weight: 800;
+            letter-spacing: -2.5px;
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #a32cff 0%, #713cff 45%, #397dff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .headline-line {
+            width: 86px;
+            height: 2px;
+            margin-top: 24px;
+            background: linear-gradient(90deg, #9135ff, #168cff);
+        }
+
+        .description {
+            max-width: 570px;
+            margin-top: 24px;
+            color: #c6cfdf;
+            font-size: 17px;
+            line-height: 1.75;
+        }
+
+        /* FEATURES */
+        .features {
+            margin-top: 36px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .feature {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            min-width: 0;
+        }
+
+        .feature-icon {
+            width: 74px;
+            height: 74px;
+            min-width: 74px;
+            border: 1px solid #194b9c;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle, rgba(43, 102, 255, 0.17), rgba(3, 15, 35, 0.55));
+            box-shadow: inset 0 0 25px rgba(40, 100, 255, 0.05);
+            transition: border-color 0.3s, transform 0.3s;
+        }
+
+        .feature:hover .feature-icon {
+            border-color: #3b7eff;
+            transform: translateY(-2px);
+        }
+
+        .feature-icon svg {
+            width: 38px;
+            height: 38px;
+        }
+
+        .feature-text {
+            min-width: 0;
+        }
+
+        .feature-text h3 {
+            margin-bottom: 6px;
+            color: #4c83ff;
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .feature-text p {
+            color: #bac5d9;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: nowrap;
+        }
+
+        /* =====================================================
+           CENTER VISUAL AREA
+        ===================================================== */
+        .visual-area {
+            position: relative;
+            min-width: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 10px;
+        }
+
+        /* BACKGROUND GRID */
+        .visual-grid {
+            position: absolute;
+            width: 110%;
+            height: 150px;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-image:
+                linear-gradient(rgba(16, 101, 255, 0.12) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(16, 101, 255, 0.12) 1px, transparent 1px);
+            background-size: 45px 45px;
+            opacity: 0.25;
+            mask-image: linear-gradient(to bottom, transparent, black 35%, transparent);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* SHIELD WRAPPER */
+        .logo-wrapper {
+            position: relative;
+            z-index: 2;
+            width: min(100%, 350px);
+            aspect-ratio: 420 / 530;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: none !important;
+            overflow: visible;
+        }
+
+        .main-shield {
+            display: block;
+            width: 100%;
+            height: 100%;
+            transform: none !important;
+            rotate: 0deg !important;
+            transform-origin: center center;
+            filter:
+                drop-shadow(0 0 8px rgba(0, 160, 255, 0.70))
+                drop-shadow(0 0 28px rgba(0, 90, 255, 0.25));
+            overflow: visible;
+            animation: subtle-float 6s ease-in-out infinite;
+        }
+
+        @keyframes subtle-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        /* =====================================================
+           LOGIN CARD
+        ===================================================== */
+        .login-card {
+            width: 100%;
+            min-height: 640px;
+            border: 1px solid rgba(77, 145, 255, 0.55);
+            border-radius: 23px;
+            background:
+                radial-gradient(circle at 50% 0%, rgba(46, 73, 170, 0.18), transparent 50%),
+                rgba(8, 18, 43, 0.85);
+            backdrop-filter: blur(12px);
+            padding: 38px 48px 34px;
+            box-shadow:
+                inset 0 0 50px rgba(35, 82, 180, 0.08),
+                0 20px 80px rgba(0, 0, 0, 0.35);
+        }
+
+        /* LOGIN LOGO */
+        .login-logo {
+            text-align: center;
+        }
+
+        .login-logo-icon {
+            width: 65px;
+            height: 72px;
+            margin: 0 auto 10px;
+        }
+
+        .login-logo-icon svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .login-brand {
+            font-size: 34px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+        }
+
+        .login-brand span {
+            color: #4c73ff;
+        }
+
+        /* WELCOME */
+        .welcome {
+            margin-top: 12px;
+            text-align: center;
+        }
+
+        .welcome h2 {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .welcome p {
+            color: #c2cbdd;
+            font-size: 15px;
+        }
+
+        /* FORM */
+        form {
+            margin-top: 28px;
+        }
+
+        .field {
+            margin-bottom: 22px;
+        }
+
+        .field label {
+            display: block;
+            margin-bottom: 9px;
+            color: #e5eaf4;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        /* INPUT */
+        .input-box {
+            width: 100%;
+            height: 58px;
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            border: 1px solid #29416f;
+            border-radius: 10px;
+            background: rgba(5, 15, 35, 0.75);
+            transition: border-color 0.25s, box-shadow 0.25s;
+        }
+
+        .input-box:focus-within {
+            border-color: #587fff;
+            box-shadow: 0 0 0 3px rgba(75, 110, 255, 0.15);
+        }
+
+        .input-box > svg {
+            width: 22px;
+            height: 22px;
+            flex-shrink: 0;
+            margin-right: 14px;
+        }
+
+        .input-box input {
+            width: 100%;
+            height: 100%;
+            outline: none;
+            border: none;
+            background: transparent;
+            color: #ffffff;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        .input-box input::placeholder {
+            color: #71809d;
+        }
+
+        /* PASSWORD TOGGLE */
+        .password-toggle {
+            cursor: pointer;
+            margin-right: 0 !important;
+            opacity: 0.8;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .password-toggle:hover {
+            opacity: 1;
+        }
+
+        /* FORGOT PASSWORD */
+        .forgot {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: -6px;
+            margin-bottom: 22px;
+        }
+
+        .forgot a {
+            color: #a276ff;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .forgot a:hover {
+            color: #bd9eff;
+            text-decoration: underline;
+        }
+
+        /* TERMS */
+        .terms {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 22px;
+            color: #929db2;
+            font-size: 12px;
+            line-height: 1.55;
+            cursor: pointer;
+        }
+
+        .terms input {
+            width: 17px;
+            height: 17px;
+            min-width: 17px;
+            margin-top: 1px;
+            cursor: pointer;
+            accent-color: #7047ff;
+        }
+
+        .terms a {
+            color: #a277ff;
+            text-decoration: none;
+        }
+
+        .terms a:hover {
+            text-decoration: underline;
+        }
+
+        /* LOGIN BUTTON */
+        .login-btn {
+            position: relative;
+            width: 100%;
+            height: 58px;
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #168ff0, #7130ec);
+            color: #ffffff;
+            font-size: 17px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(72, 70, 255, 0.35);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .login-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .login-arrow {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        /* OR DIVIDER */
+        .or {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 20px 0;
+            color: #8792aa;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .or::before,
+        .or::after {
+            content: "";
+            height: 1px;
+            flex: 1;
+            background: #253654;
+        }
+
+        /* GOOGLE BUTTON */
+        .google-btn {
+            width: 100%;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            border: 1px solid #d8dce5;
+            border-radius: 10px;
+            background: #ffffff;
+            color: #202124;
+            font-size: 15px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+        }
+
+        .google-btn:hover {
+            background: #f5f7fa;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
+        }
+
+        .google-btn:active {
+            transform: translateY(0);
+        }
+
+        .google-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        /* SIGN UP */
+        .signup {
+            margin-top: 20px;
+            text-align: center;
+            color: #c2cada;
+            font-size: 14px;
+        }
+
+        .signup a {
+            margin-left: 4px;
+            color: #a276ff;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .signup a:hover {
+            text-decoration: underline;
+        }
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
+        .bottom {
+            width: 100%;
+            max-width: 1550px;
+            min-height: 70px;
+            margin: 0 auto;
+            padding: 0 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-top: 1px solid rgba(80, 120, 200, 0.12);
+            color: #aeb8ca;
+            font-size: 14px;
+        }
+
+        .bottom-links {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+        }
+
+        .bottom-links a {
+            color: #aeb8ca;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+
+        .bottom-links a:hover {
+            color: #6b88ff;
+        }
+
+        /* =====================================================
+           TOAST
+        ===================================================== */
+        .toast {
+            position: fixed;
+            left: 50%;
+            bottom: 30px;
+            transform: translate(-50%, 100px);
+            padding: 13px 24px;
+            border: 1px solid rgba(95, 130, 255, 0.5);
+            border-radius: 10px;
+            background: rgba(9, 18, 40, 0.96);
+            backdrop-filter: blur(8px);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 500;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 100;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+
+        /* =====================================================
+           RESPONSIVE BREAKPOINTS
+        ===================================================== */
+        @media (max-width: 1350px) {
+            nav {
+                gap: 30px;
+                margin-left: 25px;
+            }
+
+            .main {
+                grid-template-columns: minmax(370px, 1fr) minmax(280px, 340px) minmax(440px, 520px);
+                gap: 16px;
+            }
+
+            .login-card {
+                padding-left: 36px;
+                padding-right: 36px;
+            }
+
+            .feature-text p {
+                white-space: normal;
+            }
+        }
+
+        @media (max-width: 1100px) {
+            header {
+                padding: 0 20px;
+            }
+
+            nav {
+                display: none;
+            }
+
+            .main {
+                grid-template-columns: 1fr 1fr;
+                gap: 30px;
+            }
+
+            .visual-area {
+                display: none;
+            }
+
+            .login-card {
+                grid-column: 2;
+                grid-row: 1;
+            }
+
+            .left-content {
+                grid-column: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header {
+                height: 70px;
+                padding: 0 18px;
+            }
+
+            .brand {
+                min-width: auto;
+            }
+
+            .brand-icon {
+                width: 38px;
+                height: 44px;
+            }
+
+            .brand-name {
+                font-size: 24px;
+            }
+
+            .secure {
+                display: none;
+            }
+
+            .main {
+                display: block;
+                padding: 25px 18px;
+            }
+
+            .left-content {
+                padding-top: 10px;
+                margin-bottom: 35px;
+            }
+
+            .headline {
+                font-size: 42px;
+                letter-spacing: -1.5px;
+            }
+
+            .description {
+                font-size: 15px;
+                line-height: 1.6;
+            }
+
+            .feature {
+                align-items: flex-start;
+            }
+
+            .feature-text p {
+                white-space: normal;
+            }
+
+            .feature-icon {
+                width: 60px;
+                height: 60px;
+                min-width: 60px;
+            }
+
+            .login-card {
+                min-height: auto;
+                padding: 30px 20px;
+            }
+
+            .login-brand {
+                font-size: 30px;
+            }
+
+            .bottom {
+                padding: 20px;
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+
+            .bottom-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+        }
+
+        @media (max-width: 430px) {
+            .headline {
+                font-size: 34px;
+            }
+
+            .feature {
+                gap: 12px;
+            }
+
+            .feature-icon {
+                width: 52px;
+                height: 52px;
+                min-width: 52px;
+            }
+
+            .feature-icon svg {
+                width: 28px;
+                height: 28px;
+            }
+
+            .login-card {
+                padding: 26px 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+<header>
+    <!-- BRAND -->
+    <a href="#" class="brand">
+        <div class="brand-icon">
+            <svg viewBox="0 0 60 70" fill="none">
+                <path d="M30 3 L56 17 V43 L30 67 L4 43 V17 L30 3Z" stroke="#3982FF" stroke-width="3"/>
+                <rect x="20" y="27" width="20" height="24" rx="4" stroke="#3982FF" stroke-width="2.5"/>
+                <path d="M24 27 V21 C24 13 36 13 36 21 V27" stroke="#3982FF" stroke-width="2.5"/>
+                <circle cx="30" cy="37" r="2" fill="#3982FF"/>
+                <path d="M30 39V45" stroke="#3982FF" stroke-width="2"/>
+            </svg>
+        </div>
+        <div class="brand-name">
+            Truth<span>Seal</span>
+        </div>
+    </a>
+
+    <!-- NAVIGATION -->
+    <nav>
+        <a href="#home">Home</a>
+        <a href="#features">Features</a>
+        <a href="#how-it-works">How It Works</a>
+        <a href="#about">About Us</a>
+        <a href="#verify">Verify</a>
+    </nav>
+
+    <!-- SECURITY -->
+    <div class="secure">
+        <svg viewBox="0 0 24 24" fill="none">
+            <path d="M12 3 L20 6.5 V11.5 C20 16.8 16.5 20.2 12 22 C7.5 20.2 4 16.8 4 11.5 V6.5 L12 3Z" stroke="#617BFF" stroke-width="2"/>
+        </svg>
+        <span>Secure. Verifiable. Trusted.</span>
+    </div>
+</header>
+
+<!-- =========================================================
+     MAIN
+========================================================= -->
+<main class="main" id="home">
+    <!-- =====================================================
+         LEFT SIDE
+    ====================================================== -->
+    <section class="left-content">
+        <h1 class="headline">
+            Truth in Every<br>
+            <span class="gradient-text">Digital Seal</span>
+        </h1>
+
+        <div class="headline-line"></div>
+
+        <p class="description">
+            TruthSeal uses blockchain & cryptographic technology to verify authenticity, protect content, and build unbreakable trust across digital assets.
+        </p>
+
+        <!-- FEATURES -->
+        <div class="features" id="features">
+            <!-- FEATURE 1 -->
+            <div class="feature">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 48 48" fill="none">
+                        <path d="M24 5 L34 11 V22 L24 28 L14 22 V11 L24 5Z" stroke="#4C82FF" stroke-width="2.5"/>
+                        <path d="M14 22L24 28L34 22" stroke="#4C82FF" stroke-width="2.5"/>
+                        <path d="M24 28V40" stroke="#4C82FF" stroke-width="2.5"/>
+                        <path d="M14 11L24 17L34 11" stroke="#4C82FF" stroke-width="2.5"/>
+                    </svg>
+                </div>
+                <div class="feature-text">
+                    <h3>Blockchain Powered</h3>
+                    <p>Immutable records on decentralized network</p>
+                </div>
+            </div>
+
+            <!-- FEATURE 2 -->
+            <div class="feature">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 48 48" fill="none">
+                        <path d="M24 4 L40 10 V21 C40 31 34 39 24 44 C14 39 8 31 8 21 V10 L24 4Z" stroke="#4C82FF" stroke-width="2.7"/>
+                        <path d="M16 24L21 29L32 18" stroke="#4C82FF" stroke-width="2.7"/>
+                    </svg>
+                </div>
+                <div class="feature-text">
+                    <h3>Cryptographic Security</h3>
+                    <p>Advanced encryption ensures data integrity</p>
+                </div>
+            </div>
+
+            <!-- FEATURE 3 -->
+            <div class="feature">
+                <div class="feature-icon">
+                    <svg viewBox="0 0 48 48" fill="none">
+                        <path d="M13 24 C13 16 18 11 24 11 C30 11 35 16 35 24" stroke="#4C82FF" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M9 25 C9 14 15 7 24 7 C33 7 39 14 39 25" stroke="#4C82FF" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M18 26 V22 C18 18.5 20.5 16 24 16 C27.5 16 30 18.5 30 22 V31" stroke="#4C82FF" stroke-width="2.5" stroke-linecap="round"/>
+                        <path d="M24 31V40" stroke="#4C82FF" stroke-width="2.5" stroke-linecap="round"/>
+                    </svg>
+                </div>
+                <div class="feature-text">
+                    <h3>Proven Authenticity</h3>
+                    <p>Verify origin, ownership & authenticity</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =====================================================
+         CENTER SHIELD
+    ====================================================== -->
+    <section class="visual-area">
+        <div class="visual-grid"></div>
+        <div class="logo-wrapper">
+            <!-- SHIELD + LOCK -->
+            <svg class="main-shield" viewBox="0 0 420 530" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- OUTER SHIELD -->
+                <path d="M210 20 L365 88 V235 C365 355 300 445 210 505 C120 445 55 355 55 235 V88 L210 20Z" stroke="url(#shieldGradient)" stroke-width="7" stroke-linejoin="round"/>
+                <!-- MIDDLE SHIELD -->
+                <path d="M210 65 L322 113 V230 C322 320 270 392 210 438 C150 392 98 320 98 230 V113 L210 65Z" stroke="#007DDB" stroke-width="3" opacity="0.9"/>
+                <!-- INNER SHIELD -->
+                <path d="M210 110 L278 143 V235 C278 290 248 338 210 372 C172 338 142 290 142 235 V143 L210 110Z" stroke="#008FE8" stroke-width="2" opacity="0.75"/>
+                <!-- LOCK SHACKLE -->
+                <path d="M173 245 V203 C173 154 247 154 247 203 V245" stroke="#00A5FF" stroke-width="7" stroke-linecap="round"/>
+                <!-- LOCK BODY -->
+                <rect x="147" y="245" width="126" height="105" rx="18" fill="rgba(0,110,210,0.05)" stroke="#009CF5" stroke-width="6"/>
+                <!-- KEYHOLE -->
+                <circle cx="210" cy="286" r="12" fill="#00A7FF"/>
+                <path d="M210 296 V322" stroke="#00A7FF" stroke-width="7" stroke-linecap="round"/>
+                <!-- GLOW -->
+                <circle cx="210" cy="280" r="105" fill="url(#glow)" opacity="0.10"/>
+                <!-- GRADIENTS -->
+                <defs>
+                    <linearGradient id="shieldGradient" x1="70" y1="80" x2="350" y2="470" gradientUnits="userSpaceOnUse">
+                        <stop offset="0%" stop-color="#00B7FF"/>
+                        <stop offset="55%" stop-color="#168EFF"/>
+                        <stop offset="100%" stop-color="#603FFF"/>
+                    </linearGradient>
+                    <radialGradient id="glow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(210 280) rotate(90) scale(105)">
+                        <stop offset="0%" stop-color="#00A5FF"/>
+                        <stop offset="100%" stop-color="#00A5FF" stop-opacity="0"/>
+                    </radialGradient>
+                </defs>
+            </svg>
+        </div>
+    </section>
+
+    <!-- =====================================================
+         LOGIN CARD
+    ====================================================== -->
+    <section class="login-card">
+        <!-- LOGIN LOGO -->
+        <div class="login-logo">
+            <div class="login-logo-icon">
+                <svg viewBox="0 0 80 90" fill="none">
+                    <path d="M40 4 L70 21 V52 L40 78 L10 52 V21 L40 4Z" stroke="#4C75FF" stroke-width="3"/>
+                    <text x="40" y="53" text-anchor="middle" fill="#4C75FF" font-size="32" font-family="'Inter', Arial" font-weight="700">T</text>
+                </svg>
+            </div>
+            <div class="login-brand">
+                Truth<span>Seal</span>
+            </div>
+        </div>
+
+        <!-- WELCOME -->
+        <div class="welcome">
+            <h2 id="cardTitle">Welcome Back</h2>
+            <p id="cardSubtitle">Select your role or enter credentials to sign in</p>
+        </div>
+
+        <!-- MULTI-PERSONA ROLE SELECTOR -->
+        <div class="persona-selector" id="personaSelector">
+            <button type="button" class="persona-tab active" onclick="selectPersona('issuer')">
+                <span class="persona-icon">🏛️</span>
+                <span class="persona-label">Issuer</span>
+            </button>
+            <button type="button" class="persona-tab" onclick="selectPersona('verifier')">
+                <span class="persona-icon">🔍</span>
+                <span class="persona-label">Verifier</span>
+            </button>
+            <button type="button" class="persona-tab" onclick="selectPersona('student')">
+                <span class="persona-icon">🎓</span>
+                <span class="persona-label">Student</span>
+            </button>
+            <button type="button" class="persona-tab" onclick="selectPersona('admin')">
+                <span class="persona-icon">👑</span>
+                <span class="persona-label">Admin</span>
+            </button>
+        </div>
+
+        <!-- FORM (SIGN IN & SIGN UP) -->
+        <form id="authForm">
+            <!-- FULL NAME (ONLY IN SIGN UP) -->
+            <div class="field" id="nameField" style="display: none;">
+                <label for="regName">Full Name</label>
+                <div class="input-box">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="7" r="4" stroke="#91A2C4" stroke-width="1.8"/>
+                        <path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2" stroke="#91A2C4" stroke-width="1.8"/>
+                    </svg>
+                    <input id="regName" type="text" placeholder="e.g. Priya Sharma" autocomplete="name">
+                </div>
+            </div>
+
+            <!-- ORGANIZATION / UNIVERSITY (ONLY IN SIGN UP) -->
+            <div class="field" id="orgField" style="display: none;">
+                <label for="regOrg">Organization / University</label>
+                <div class="input-box">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16" stroke="#91A2C4" stroke-width="1.8"/>
+                        <path d="M9 9h1M9 13h1M9 17h1M14 9h1M14 13h1M14 17h1" stroke="#91A2C4" stroke-width="1.8"/>
+                    </svg>
+                    <input id="regOrg" type="text" placeholder="e.g. IIT Delhi / Microsoft">
+                </div>
+            </div>
+
+            <!-- EMAIL -->
+            <div class="field">
+                <label for="email">Email Address</label>
+                <div class="input-box">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="3" y="5" width="18" height="14" rx="2" stroke="#91A2C4" stroke-width="1.8"/>
+                        <path d="M4 7L12 13L20 7" stroke="#91A2C4" stroke-width="1.8"/>
+                    </svg>
+                    <input id="email" type="email" placeholder="Enter your email" autocomplete="email" required>
+                </div>
+            </div>
+
+            <!-- PASSWORD -->
+            <div class="field">
+                <label for="password">Password</label>
+                <div class="input-box">
+                    <svg viewBox="0 0 24 24" fill="none">
+                        <rect x="5" y="10" width="14" height="10" rx="2" stroke="#91A2C4" stroke-width="1.8"/>
+                        <path d="M8 10V7C8 2 16 2 16 7V10" stroke="#91A2C4" stroke-width="1.8"/>
+                        <circle cx="12" cy="15" r="1.5" fill="#91A2C4"/>
+                    </svg>
+                    <input id="password" type="password" placeholder="Enter your password" autocomplete="current-password" required>
+
+                    <!-- SHOW / HIDE -->
+                    <div class="password-toggle" id="togglePassword" title="Toggle password visibility">
+                        <svg id="eyeIcon" viewBox="0 0 24 24" width="22" height="22" fill="none">
+                            <path d="M3 3L21 21" stroke="#8D9AB3" stroke-width="1.8"/>
+                            <path d="M10.6 10.6C10.2 11 10 11.5 10 12C10 13.1 10.9 14 12 14C12.5 14 13 13.8 13.4 13.4" stroke="#8D9AB3" stroke-width="1.8"/>
+                            <path d="M9.9 5.3C10.6 5.1 11.3 5 12 5C17 5 20.5 9 21.5 12C21 13.6 20 15.1 18.7 16.3" stroke="#8D9AB3" stroke-width="1.8"/>
+                            <path d="M6.2 6.2C4.5 7.5 3.3 9.6 2.5 12C3.5 15 7 19 12 19C13.5 19 14.9 18.7 16.2 18.1" stroke="#8D9AB3" stroke-width="1.8"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FORGOT PASSWORD -->
+            <div class="forgot" id="forgotContainer">
+                <a href="javascript:void(0)" onclick="handleForgotPassword()">Forgot Password?</a>
+            </div>
+
+            <!-- TERMS -->
+            <label class="terms">
+                <input type="checkbox" id="terms" checked required>
+                <span>
+                    I agree to the <a href="#">Privacy Policy</a>, <a href="#">Authentication Policy</a> and <a href="#">Terms & Conditions</a>.
+                </span>
+            </label>
+
+            <!-- SUBMIT BUTTON -->
+            <button type="submit" class="login-btn" id="submitBtn">
+                <span id="btnText">Login to TruthSeal</span>
+                <span class="login-arrow">→</span>
+            </button>
+
+            <!-- OR -->
+            <div class="or" id="orDivider">OR</div>
+
+            <!-- GOOGLE -->
+            <button type="button" class="google-btn" id="googleBtn">
+                <svg class="google-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M21.35 12.23C21.35 11.44 21.28 10.68 21.13 9.96H12V14.26H17.24C17.01 15.43 16.34 16.42 15.30 17.08V19.53H18.44C20.28 17.83 21.35 15.33 21.35 12.23Z" fill="#4285F4"/>
+                    <path d="M12 21.5C14.63 21.5 16.84 20.63 18.44 19.15L15.30 16.70C14.43 17.28 13.32 17.62 12 17.62C9.46 17.62 7.31 15.90 6.54 13.59H3.29V16.12C5.02 19.31 8.29 21.5 12 21.5Z" fill="#34A853"/>
+                    <path d="M6.54 13.59C6.34 13.04 6.23 12.50 6.23 11.95C6.23 11.40 6.34 10.86 6.54 10.36V7.83H3.29C2.61 9.05 2.25 10.46 2.25 11.95C2.25 13.44 2.61 14.85 3.29 16.07L6.54 13.59Z" fill="#FBBC05"/>
+                    <path d="M12 6.38C13.43 6.38 14.71 6.87 15.72 7.83L18.51 5.04C16.83 3.49 14.63 2.5 12 2.5C8.29 2.5 5.02 4.69 3.29 7.88L6.54 10.41C7.31 8.10 9.46 6.38 12 6.38Z" fill="#EA4335"/>
+                </svg>
+                Continue with Google
+            </button>
+
+            <!-- SIGN UP / SIGN IN TOGGLE -->
+            <div class="signup">
+                <span id="toggleText">Don't have an account?</span>
+                <a href="javascript:void(0)" id="toggleAuthBtn" onclick="toggleAuthMode()">Create New Account</a>
+            </div>
+        </form>
+    </section>
+</main>
+
+<!-- =========================================================
+     AUTHENTIC GOOGLE ACCOUNT CHOOSER (LAMBODAR DEY ACCOUNTS)
+========================================================= -->
+<div class="google-modal-backdrop" id="googleModal" onclick="closeGoogleModalOnBackdrop(event)">
+    <div class="google-modal-card">
+        <button type="button" class="google-modal-close" onclick="closeGoogleModal()">&times;</button>
+
+        <!-- GOOGLE HEADER -->
+        <div class="g-header-row">
+            <svg class="google-g-logo" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M21.35 12.23C21.35 11.44 21.28 10.68 21.13 9.96H12V14.26H17.24C17.01 15.43 16.34 16.42 15.30 17.08V19.53H18.44C20.28 17.83 21.35 15.33 21.35 12.23Z" fill="#4285F4"/>
+                <path d="M12 21.5C14.63 21.5 16.84 20.63 18.44 19.15L15.30 16.70C14.43 17.28 13.32 17.62 12 17.62C9.46 17.62 7.31 15.90 6.54 13.59H3.29V16.12C5.02 19.31 8.29 21.5 12 21.5Z" fill="#34A853"/>
+                <path d="M6.54 13.59C6.34 13.04 6.23 12.50 6.23 11.95C6.23 11.40 6.34 10.86 6.54 10.36V7.83H3.29C2.61 9.05 2.25 10.46 2.25 11.95C2.25 13.44 2.61 14.85 3.29 16.07L6.54 13.59Z" fill="#FBBC05"/>
+                <path d="M12 6.38C13.43 6.38 14.71 6.87 15.72 7.83L18.51 5.04C16.83 3.49 14.63 2.5 12 2.5C8.29 2.5 5.02 4.69 3.29 7.88L6.54 10.41C7.31 8.10 9.46 6.38 12 6.38Z" fill="#EA4335"/>
+            </svg>
+            <span class="g-header-text">Sign in with Google</span>
+        </div>
+
+        <!-- PROGRESS LOADER (HIDDEN INITIALLY) -->
+        <div class="google-loader" id="googleLoader" style="display: none;">
+            <div class="google-spinner"></div>
+            <div id="googleLoadingText" style="font-size: 15px; color: #3c4043; font-weight: 500;">Signing in with Google...</div>
+        </div>
+
+        <div id="googleChooserBody">
+            <div class="g-modal-grid">
+                <!-- LEFT COLUMN: TITLE & SUBTITLE -->
+                <div class="g-left-col">
+                    <h2 class="g-main-title">Choose an account</h2>
+                    <p class="g-sub-title">to continue to <a href="javascript:void(0)" class="g-app-link">TruthSeal</a></p>
+                </div>
+
+                <!-- RIGHT COLUMN: ACCOUNT LIST -->
+                <div class="g-right-col">
+                    <div class="google-account-list" id="googleAccountList">
+                        <!-- ACCOUNT 1: lambodardey37@gmail.com -->
+                        <div class="g-account-row" onclick="loginWithGoogleAccount('Lambodar Dey', 'lambodardey37@gmail.com', 'admin', 'TruthSeal Core')">
+                            <div class="g-avatar-circle g-avatar-img">
+                                <span>LD</span>
+                            </div>
+                            <div class="g-account-details">
+                                <div class="g-user-name">Lambodar Dey</div>
+                                <div class="g-user-email">lambodardey37@gmail.com</div>
+                            </div>
+                        </div>
+
+                        <!-- ACCOUNT 2: lxr372@gmail.com -->
+                        <div class="g-account-row" onclick="loginWithGoogleAccount('Lambodar Dey', 'lxr372@gmail.com', 'issuer', 'TruthSeal Authority')">
+                            <div class="g-avatar-circle g-avatar-gray">
+                                <span>L</span>
+                            </div>
+                            <div class="g-account-details">
+                                <div class="g-user-name">Lambodar Dey</div>
+                                <div class="g-user-email">lxr372@gmail.com</div>
+                            </div>
+                        </div>
+
+                        <!-- USE ANOTHER ACCOUNT -->
+                        <div class="g-account-row g-use-another-row" onclick="toggleUseAnotherAccount()">
+                            <div class="g-avatar-circle g-avatar-icon">
+                                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#5f6368" stroke-width="1.8">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                            <div class="g-account-details">
+                                <div class="g-user-name" style="font-weight: 500; color: #1f1f1f;">Use another account</div>
+                            </div>
+                        </div>
+
+                        <!-- INLINE INPUT FOR CUSTOM ACCOUNT -->
+                        <div id="useAnotherBox" style="display: none; padding: 14px 16px; background: #f8fafd; border-radius: 8px; border: 1px solid #dadce0; margin-top: 8px;">
+                            <label style="display: block; font-size: 12px; color: #5f6368; font-weight: 600; margin-bottom: 6px;">Enter your Google email:</label>
+                            <input type="email" id="customGoogleEmailInput" placeholder="e.g. name@gmail.com" style="width: 100%; height: 38px; border: 1px solid #dadce0; border-radius: 6px; padding: 0 10px; font-size: 13px; margin-bottom: 8px; outline: none; font-family: inherit; color: #202124;">
+                            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                                <button type="button" onclick="toggleUseAnotherAccount()" style="padding: 6px 12px; background: transparent; border: 1px solid #dadce0; border-radius: 4px; font-size: 12px; font-weight: 600; color: #5f6368; cursor: pointer;">Cancel</button>
+                                <button type="button" onclick="submitAnotherAccount()" style="padding: 6px 16px; background: #0b57d0; border: none; border-radius: 4px; font-size: 12px; font-weight: 600; color: #fff; cursor: pointer;">Next →</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRIVACY FOOTER -->
+            <div class="g-modal-footer">
+                Before using this app, you can review TruthSeal's <a href="#" class="g-policy-link">Privacy Policy</a> and <a href="#" class="g-policy-link">Terms of Service</a>.
+            </div>
+
+            <!-- BOTTOM BAR -->
+            <div class="g-bottom-bar">
+                <div class="g-lang-select">
+                    <span>English (United States)</span>
+                    <span style="font-size: 10px; margin-left: 4px;">▼</span>
+                </div>
+                <div class="g-bottom-nav">
+                    <a href="#">Help</a>
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+<footer class="bottom">
+    <div>© 2026 TruthSeal. Cryptographic Ledger & Verification Network.</div>
+    <div class="bottom-links" style="display: flex; gap: 12px; align-items: center; justify-content: center; margin-top: 6px; font-size: 13px;">
+        <a href="/verify.html" style="color: #4b8eff; text-decoration: none;">🔍 Public Verifier</a>
+        <span style="color: #445069;">|</span>
+        <a href="/dashboard.html" style="color: #4b8eff; text-decoration: none;">🏛️ Issuer & Auditor Console</a>
+        <span style="color: #445069;">|</span>
+        <a href="/api/ledger/stats" target="_blank" style="color: #4b8eff; text-decoration: none;">⛓️ Blockchain Stats</a>
+    </div>
+</footer>
+
+<!-- TOAST -->
+<div class="toast" id="toast" role="alert" aria-live="polite"></div>
+
+<!-- =========================================================
+     STYLES FOR GOOGLE MODAL & PERSONA SELECTOR
+========================================================= -->
+<style>
+    .persona-selector {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        margin: 20px 0;
+        background: rgba(3, 10, 24, 0.7);
+        padding: 6px;
+        border-radius: 12px;
+        border: 1px solid rgba(75, 110, 255, 0.25);
+    }
+    .persona-tab {
+        background: transparent;
+        border: 1px solid transparent;
+        color: #8da0c4;
+        padding: 8px 4px;
+        border-radius: 8px;
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        transition: all 0.2s ease;
+    }
+    .persona-tab:hover {
+        color: #fff;
+        background: rgba(75, 110, 255, 0.1);
+    }
+    .persona-tab.active {
+        background: rgba(43, 102, 255, 0.25);
+        border-color: #4c75ff;
+        color: #ffffff;
+        box-shadow: 0 0 15px rgba(76, 117, 255, 0.2);
+    }
+    .persona-icon { font-size: 18px; }
+    .persona-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* =========================================================
+       GOOGLE ACCOUNT CHOOSER (EXACT GOOGLE MATERIAL 3 STYLE)
+    ========================================================= */
+    .google-modal-backdrop {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.68);
+        backdrop-filter: blur(8px);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+        padding: 16px;
+        animation: gFadeIn 0.22s ease-out;
+    }
+    @keyframes gFadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .google-modal-card {
+        position: relative;
+        background: #ffffff;
+        color: #1f1f1f;
+        border-radius: 28px;
+        max-width: 780px;
+        width: 100%;
+        padding: 36px 40px 28px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+        font-family: 'Roboto', 'Google Sans', 'Segoe UI', Arial, sans-serif;
+        animation: gCardSlide 0.26s cubic-bezier(0, 0, 0.2, 1);
+    }
+    @keyframes gCardSlide {
+        from { opacity: 0; transform: scale(0.96); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    .google-modal-close {
+        position: absolute;
+        top: 20px;
+        right: 24px;
+        background: transparent;
+        border: none;
+        font-size: 26px;
+        color: #5f6368;
+        cursor: pointer;
+        line-height: 1;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s, color 0.2s;
+    }
+    .google-modal-close:hover {
+        background: #f1f3f4;
+        color: #1f1f1f;
+    }
+
+    .g-header-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 28px;
+    }
+    .google-g-logo {
+        width: 24px;
+        height: 24px;
+    }
+    .g-header-text {
+        font-size: 15px;
+        font-weight: 500;
+        color: #444746;
+    }
+
+    .g-modal-grid {
+        display: grid;
+        grid-template-columns: 1fr 1.35fr;
+        gap: 36px;
+        align-items: start;
+        margin-bottom: 32px;
+    }
+    @media (max-width: 680px) {
+        .g-modal-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+        .google-modal-card {
+            padding: 24px 20px;
+            border-radius: 20px;
+        }
+    }
+
+    .g-left-col {
+        padding-top: 4px;
+    }
+    .g-main-title {
+        font-size: 32px;
+        font-weight: 400;
+        color: #1f1f1f;
+        line-height: 1.25;
+        margin-bottom: 12px;
+        letter-spacing: -0.5px;
+    }
+    .g-sub-title {
+        font-size: 16px;
+        color: #444746;
+        line-height: 1.4;
+    }
+    .g-app-link {
+        color: #0b57d0;
+        text-decoration: none;
+        font-weight: 500;
+    }
+    .g-app-link:hover {
+        text-decoration: underline;
+    }
+
+    .g-right-col {
+        display: flex;
+        flex-direction: column;
+    }
+    .google-account-list {
+        display: flex;
+        flex-direction: column;
+    }
+    .g-account-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 14px 12px;
+        border-bottom: 1px solid #e0e2e0;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: background 0.15s ease;
+    }
+    .g-account-row:hover {
+        background: #f8fafd;
+    }
+    .g-account-row:last-child {
+        border-bottom: none;
+    }
+
+    .g-avatar-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+    .g-avatar-img {
+        background: #e8eaed;
+        background-image: linear-gradient(135deg, #1a73e8, #0b57d0);
+        color: #ffffff;
+    }
+    .g-avatar-gray {
+        background: #5f6368;
+        color: #ffffff;
+    }
+    .g-avatar-icon {
+        background: transparent;
+        border: 1px solid #dadce0;
+    }
+
+    .g-account-details {
+        flex: 1;
+        min-width: 0;
+    }
+    .g-user-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: #1f1f1f;
+        line-height: 1.3;
+    }
+    .g-user-email {
+        font-size: 12px;
+        color: #444746;
+        line-height: 1.3;
+    }
+
+    .g-modal-footer {
+        font-size: 12px;
+        color: #444746;
+        line-height: 1.5;
+        margin-bottom: 24px;
+    }
+    .g-policy-link {
+        color: #0b57d0;
+        text-decoration: none;
+    }
+    .g-policy-link:hover {
+        text-decoration: underline;
+    }
+
+    .g-bottom-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 12px;
+        color: #444746;
+        padding-top: 14px;
+        border-top: 1px solid #e0e2e0;
+    }
+    .g-lang-select {
+        cursor: pointer;
+    }
+    .g-bottom-nav {
+        display: flex;
+        gap: 20px;
+    }
+    .g-bottom-nav a {
+        color: #444746;
+        text-decoration: none;
+    }
+    .g-bottom-nav a:hover {
+        color: #1f1f1f;
+    }
+
+    /* GOOGLE SPINNER */
+    .google-loader {
+        text-align: center;
+        padding: 40px 20px;
+    }
+    .google-spinner {
+        width: 42px;
+        height: 42px;
+        border: 3px solid #e8eaed;
+        border-top: 3px solid #0b57d0;
+        border-radius: 50%;
+        margin: 0 auto 16px;
+        animation: gSpin 0.8s linear infinite;
+    }
+    @keyframes gSpin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+</style>
+
+<!-- =========================================================
+     JAVASCRIPT FOR MULTI-PERSONA, SIGNUP & GOOGLE CHOOSER
+========================================================= -->
+<script>
+    const PERSONAS = {
+        issuer: {
+            name: "Dr. Rajesh Kumar",
+            email: "issuer@truthseal.io",
+            pass: "TruthSeal@2026",
+            role: "issuer",
+            title: "Issuing Authority Login",
+            subtitle: "Anchor degrees, identity cards, and certificates to blockchain"
+        },
+        verifier: {
+            name: "Pooja Mehta",
+            email: "verifier@truthseal.io",
+            pass: "TruthSeal@2026",
+            role: "verifier",
+            title: "Verifier & Auditor Login",
+            subtitle: "Verify cryptographic document authenticity and validity"
+        },
+        student: {
+            name: "Aarav Sharma",
+            email: "student@truthseal.io",
+            pass: "TruthSeal@2026",
+            role: "user",
+            title: "Student & Credential Holder",
+            subtitle: "Access and share your tamper-proof cryptographic seals"
+        },
+        admin: {
+            name: "Security Admin",
+            email: "admin@truthseal.io",
+            pass: "TruthSeal@2026",
+            role: "admin",
+            title: "System Administrator",
+            subtitle: "Manage cryptographic keys, audit logs, and blockchain consensus"
+        }
+    };
+
+    let selectedRole = "issuer";
+    let isSignUpMode = false;
+
+    function selectPersona(roleKey) {
+        selectedRole = roleKey;
+        const p = PERSONAS[roleKey];
+
+        document.querySelectorAll(".persona-tab").forEach(tab => tab.classList.remove("active"));
+        if (event && event.currentTarget) {
+            event.currentTarget.classList.add("active");
+        }
+
+        if (!isSignUpMode) {
+            document.getElementById("cardTitle").textContent = p.title;
+            document.getElementById("cardSubtitle").textContent = p.subtitle;
+            // Keep email and password blank for real user input
+        }
+    }
+
+    function toggleAuthMode() {
+        isSignUpMode = !isSignUpMode;
+        const nameField = document.getElementById("nameField");
+        const orgField = document.getElementById("orgField");
+        const forgotContainer = document.getElementById("forgotContainer");
+        const cardTitle = document.getElementById("cardTitle");
+        const cardSubtitle = document.getElementById("cardSubtitle");
+        const btnText = document.getElementById("btnText");
+        const toggleText = document.getElementById("toggleText");
+        const toggleBtn = document.getElementById("toggleAuthBtn");
+
+        if (isSignUpMode) {
+            nameField.style.display = "block";
+            orgField.style.display = "block";
+            forgotContainer.style.display = "none";
+            cardTitle.textContent = "Create New Account";
+            cardSubtitle.textContent = `Register as a new ${selectedRole.toUpperCase()} on TruthSeal`;
+            btnText.textContent = "Register & Sign In";
+            toggleText.textContent = "Already have an account?";
+            toggleBtn.textContent = "Sign In instead";
+            document.getElementById("email").value = "";
+            document.getElementById("password").value = "";
+        } else {
+            nameField.style.display = "none";
+            orgField.style.display = "none";
+            forgotContainer.style.display = "flex";
+            const p = PERSONAS[selectedRole];
+            cardTitle.textContent = p.title;
+            cardSubtitle.textContent = p.subtitle;
+            btnText.textContent = "Login to TruthSeal";
+            toggleText.textContent = "Don't have an account?";
+            toggleBtn.textContent = "Create New Account";
+            document.getElementById("email").value = "";
+            document.getElementById("password").value = "";
+        }
+    }
+
+    // Default: Keep email and password completely blank on load
+    window.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("email").value = "";
+        document.getElementById("password").value = "";
+    });
+
+    /* TOAST */
+    const toast = document.getElementById("toast");
+    let toastTimeout;
+    function showToast(message, isError = false) {
+        toast.textContent = message;
+        toast.style.borderColor = isError ? "rgba(255, 75, 75, 0.8)" : "rgba(95, 130, 255, 0.5)";
+        toast.classList.add("show");
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => toast.classList.remove("show"), 3500);
+    }
+
+    /* PASSWORD TOGGLE */
+    const password = document.getElementById("password");
+    const togglePassword = document.getElementById("togglePassword");
+    const eyeIcon = document.getElementById("eyeIcon");
+    const eyeOpenSvg = `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="#8D9AB3" stroke-width="1.8" fill="none"/><circle cx="12" cy="12" r="3" stroke="#8D9AB3" stroke-width="1.8" fill="none"/>`;
+    const eyeClosedSvg = `<path d="M3 3L21 21" stroke="#8D9AB3" stroke-width="1.8"/><path d="M10.6 10.6C10.2 11 10 11.5 10 12C10 13.1 10.9 14 12 14C12.5 14 13 13.8 13.4 13.4" stroke="#8D9AB3" stroke-width="1.8"/><path d="M9.9 5.3C10.6 5.1 11.3 5 12 5C17 5 20.5 9 21.5 12C21 13.6 20 15.1 18.7 16.3" stroke="#8D9AB3" stroke-width="1.8"/><path d="M6.2 6.2C4.5 7.5 3.3 9.6 2.5 12C3.5 15 7 19 12 19C13.5 19 14.9 18.7 16.2 18.1" stroke="#8D9AB3" stroke-width="1.8"/>`;
+
+    togglePassword.addEventListener("click", () => {
+        if (password.type === "password") {
+            password.type = "text";
+            eyeIcon.innerHTML = eyeOpenSvg;
+        } else {
+            password.type = "password";
+            eyeIcon.innerHTML = eyeClosedSvg;
+        }
+    });
+
+    /* FORM SUBMIT (LOGIN OR REGISTER) */
+    const authForm = document.getElementById("authForm");
+    const submitBtn = document.getElementById("submitBtn");
+
+    authForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const email = document.getElementById("email").value.trim();
+        const pass = document.getElementById("password").value;
+        const terms = document.getElementById("terms").checked;
+
+        if (!email || !pass) {
+            showToast("Please enter email and password.", true);
+            return;
+        }
+        if (!terms) {
+            showToast("Please accept policies and terms.", true);
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<span>${isSignUpMode ? "Registering on Blockchain..." : "Authenticating..."}</span> ⏳`;
+
+        try {
+            let endpoint = "/api/auth/login";
+            let payload = { email, password: pass };
+
+            if (isSignUpMode) {
+                endpoint = "/api/auth/register";
+                payload = {
+                    name: document.getElementById("regName").value || email.split("@")[0],
+                    email,
+                    password: pass,
+                    role: selectedRole,
+                    organization: document.getElementById("regOrg").value || "TruthSeal Verified Member"
+                };
+            }
+
+            const res = await fetch(endpoint, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            if (data.success && data.token) {
+                localStorage.setItem("truthseal_token", data.token);
+                localStorage.setItem("truthseal_user", JSON.stringify(data.user));
+
+                showToast(`Authenticated as ${data.user.name} (${data.user.role.toUpperCase()})!`);
+                submitBtn.innerHTML = `<span>Success ✓</span> →`;
+                showAuthenticatedSession(data.user, data.token);
+            } else {
+                showToast(data.error || "Authentication failed.", true);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<span>${isSignUpMode ? "Register & Sign In" : "Login to TruthSeal"}</span> →`;
+            }
+        } catch (err) {
+            showToast("Network error connecting to backend.", true);
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<span>${isSignUpMode ? "Register & Sign In" : "Login to TruthSeal"}</span> →`;
+        }
+    });
+
+    /* =========================================================
+       AUTHENTICATED SESSION IN-PLACE VIEW
+    ========================================================= */
+    function showAuthenticatedSession(user, token) {
+        closeGoogleModal();
+        const authCard = document.querySelector(".card");
+        if (!authCard) return;
+
+        authCard.innerHTML = `
+            <div style="text-align: center; padding: 20px 0;">
+                <div style="width: 68px; height: 68px; border-radius: 50%; background: linear-gradient(135deg, #00d2ff, #0059ff); color: #fff; font-size: 28px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; box-shadow: 0 0 25px rgba(0, 89, 255, 0.4);">
+                    ${(user.name || user.email).charAt(0).toUpperCase()}
+                </div>
+                <div style="display: inline-block; padding: 4px 12px; background: rgba(0, 230, 118, 0.15); border: 1px solid rgba(0, 230, 118, 0.4); border-radius: 20px; color: #00e676; font-size: 11px; font-weight: 700; text-transform: uppercase; margin-bottom: 12px;">
+                    ✓ Authenticated Session
+                </div>
+                <h2 style="font-size: 22px; font-weight: 700; color: #fff; margin-bottom: 4px;">${user.name}</h2>
+                <p style="font-size: 13px; color: #8da0c4; margin-bottom: 20px;">${user.email}</p>
+
+                <div style="background: rgba(3, 10, 24, 0.8); border: 1px solid rgba(75, 110, 255, 0.2); border-radius: 12px; padding: 14px 16px; text-align: left; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                        <span style="color: #6c7d9e;">Role:</span>
+                        <span style="color: #4b8eff; font-weight: 700; text-transform: uppercase;">${user.role}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px;">
+                        <span style="color: #6c7d9e;">Organization:</span>
+                        <span style="color: #ffffff; font-weight: 500;">${user.organization || 'TruthSeal Verified'}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px;">
+                        <span style="color: #6c7d9e;">Token Status:</span>
+                        <span style="color: #00e676; font-weight: 600;">Cryptographically Active 🔒</span>
+                    </div>
+                </div>
+
+                <button type="button" onclick="logoutSession()" class="login-btn" style="width: 100%; justify-content: center; background: rgba(255, 75, 75, 0.15); border: 1px solid rgba(255, 75, 75, 0.35); color: #ff6b6b;">
+                    Sign Out / Switch Account
+                </button>
+            </div>
+        `;
+    }
+
+    function logoutSession() {
+        localStorage.removeItem("truthseal_token");
+        localStorage.removeItem("truthseal_user");
+        window.location.reload();
+    }
+
+    /* =========================================================
+       GOOGLE ACCOUNT CHOOSER (LAMBODAR DEY REAL ACCOUNTS)
+    ========================================================= */
+    const googleBtn = document.getElementById("googleBtn");
+    const googleModal = document.getElementById("googleModal");
+    const googleChooserBody = document.getElementById("googleChooserBody");
+    const googleLoader = document.getElementById("googleLoader");
+    const googleLoadingText = document.getElementById("googleLoadingText");
+
+    googleBtn.addEventListener("click", () => {
+        openGoogleModal();
+    });
+
+    function openGoogleModal() {
+        googleModal.style.display = "flex";
+        googleChooserBody.style.display = "block";
+        googleLoader.style.display = "none";
+    }
+
+    function closeGoogleModal() {
+        googleModal.style.display = "none";
+    }
+
+    function closeGoogleModalOnBackdrop(e) {
+        if (e.target === googleModal) {
+            closeGoogleModal();
+        }
+    }
+
+    function toggleUseAnotherAccount() {
+        const box = document.getElementById("useAnotherBox");
+        box.style.display = box.style.display === "none" ? "block" : "none";
+        if (box.style.display === "block") {
+            document.getElementById("customGoogleEmailInput").focus();
+        }
+    }
+
+    function submitAnotherAccount() {
+        const email = document.getElementById("customGoogleEmailInput").value.trim();
+        if (!email || !email.includes("@")) {
+            alert("Please enter a valid Google email address.");
+            return;
+        }
+        const namePart = email.split("@")[0].replace(".", " ");
+        const displayName = namePart.charAt(0).toUpperCase() + namePart.slice(1);
+        loginWithGoogleAccount(displayName, email, "user", "Google Verified Account");
+    }
+
+    async function loginWithGoogleAccount(name, email, role, organization) {
+        // Show Google progress animation inside modal
+        googleChooserBody.style.display = "none";
+        googleLoader.style.display = "block";
+        googleLoadingText.textContent = `Signing in with ${email}...`;
+
+        try {
+            const res = await fetch("/api/auth/google", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    email,
+                    name,
+                    role: role || "user",
+                    organization: organization || "Google Verified Account",
+                    googleId: "g_" + Math.random().toString(36).slice(2)
+                })
+            });
+
+            const data = await res.json();
+
+            if (data.success && data.token) {
+                localStorage.setItem("truthseal_token", data.token);
+                localStorage.setItem("truthseal_user", JSON.stringify(data.user));
+
+                googleLoadingText.textContent = `Success! Redirecting to TruthSeal...`;
+                showToast(`Signed in as ${data.user.name} (${data.user.email})`);
+
+                setTimeout(() => {
+                    showAuthenticatedSession(data.user, data.token);
+                }, 600);
+            } else {
+                alert(data.error || "Google authentication failed.");
+                googleChooserBody.style.display = "block";
+                googleLoader.style.display = "none";
+            }
+        } catch (err) {
+            console.error("Google Auth Network Error:", err);
+            alert("Network error connecting to Google Auth service.");
+            googleChooserBody.style.display = "block";
+            googleLoader.style.display = "none";
+        }
+    }
+
+    function handleForgotPassword() {
+        const email = document.getElementById("email").value.trim();
+        if (!email) {
+            showToast("Enter email address above first.", true);
+            return;
+        }
+        fetch("/api/auth/forgot-password", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email })
+        })
+        .then(r => r.json())
+        .then(d => showToast(d.message || "Reset link dispatched."));
+    }
+</script>
+
+</body>
+</html>

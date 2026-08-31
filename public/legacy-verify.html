@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TruthSeal | Public Cryptographic Verifier</title>
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background:
+                radial-gradient(circle at 50% 20%, rgba(0, 110, 255, 0.12), transparent 35%),
+                radial-gradient(circle at 80% 70%, rgba(100, 50, 255, 0.08), transparent 30%),
+                #020713;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        header {
+            width: 100%;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 32px;
+            border-bottom: 1px solid rgba(92, 127, 207, 0.15);
+            background: rgba(2, 7, 19, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #fff;
+            font-size: 24px;
+            font-weight: 800;
+        }
+        .brand span { color: #4b72ff; }
+
+        nav a {
+            color: #c0cdf0;
+            text-decoration: none;
+            margin-left: 24px;
+            font-weight: 600;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+        nav a:hover { color: #4b72ff; }
+
+        .container {
+            max-width: 1100px;
+            margin: 40px auto;
+            padding: 0 20px;
+            width: 100%;
+        }
+
+        .hero-title {
+            text-align: center;
+            font-size: 40px;
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            margin-bottom: 12px;
+        }
+        .hero-title span {
+            background: linear-gradient(90deg, #a32cff, #397dff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .hero-desc {
+            text-align: center;
+            color: #9eb1d4;
+            font-size: 16px;
+            max-width: 600px;
+            margin: 0 auto 36px;
+        }
+
+        .verify-card {
+            background: rgba(8, 18, 43, 0.85);
+            border: 1px solid rgba(77, 145, 255, 0.4);
+            border-radius: 20px;
+            padding: 36px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px);
+        }
+
+        .tab-group {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid #1a305e;
+            padding-bottom: 12px;
+        }
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: #92a4c9;
+            font-size: 15px;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: rgba(75, 110, 255, 0.2);
+            color: #588eff;
+            border: 1px solid rgba(75, 110, 255, 0.4);
+        }
+
+        .drop-zone {
+            border: 2px dashed #2a4c8a;
+            border-radius: 14px;
+            padding: 40px 20px;
+            text-align: center;
+            background: rgba(4, 12, 28, 0.6);
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+        .drop-zone:hover, .drop-zone.dragover {
+            border-color: #4b82ff;
+            background: rgba(16, 40, 90, 0.4);
+        }
+
+        .input-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 18px;
+        }
+        .text-input {
+            flex: 1;
+            height: 54px;
+            background: rgba(4, 12, 28, 0.8);
+            border: 1px solid #274175;
+            border-radius: 10px;
+            padding: 0 18px;
+            color: #fff;
+            font-size: 15px;
+            font-family: inherit;
+            outline: none;
+        }
+        .text-input:focus {
+            border-color: #5280ff;
+            box-shadow: 0 0 0 3px rgba(75, 110, 255, 0.15);
+        }
+
+        .btn-primary {
+            height: 54px;
+            padding: 0 28px;
+            background: linear-gradient(90deg, #168ff0, #7130ec);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(72, 70, 255, 0.4);
+        }
+
+        /* RESULT SECTION */
+        .result-box {
+            display: none;
+            margin-top: 32px;
+            border-radius: 16px;
+            padding: 28px;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-box.authentic {
+            background: rgba(14, 52, 36, 0.5);
+            border: 1px solid #1fa363;
+        }
+        .result-box.tampered, .result-box.revoked, .result-box.not_found {
+            background: rgba(60, 20, 25, 0.5);
+            border: 1px solid #f44336;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+        .badge.green { background: #188045; color: #fff; }
+        .badge.red { background: #d32f2f; color: #fff; }
+
+        .meta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .meta-item {
+            background: rgba(3, 10, 24, 0.6);
+            padding: 14px 18px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .meta-label { font-size: 12px; color: #8fa0c0; text-transform: uppercase; margin-bottom: 4px; }
+        .meta-val { font-size: 15px; font-weight: 600; color: #fff; word-break: break-all; }
+        .hash-val { font-family: 'Fira Code', monospace; font-size: 12px; color: #72b5ff; }
+
+        footer {
+            border-top: 1px solid rgba(92, 127, 207, 0.15);
+            padding: 24px 32px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            color: #8da0c2;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <a href="/" class="brand">
+        🛡️ Truth<span>Seal</span> Verifier
+    </a>
+    <nav>
+        <a href="/">Home</a>
+        <a href="/verify.html" style="color: #588eff;">Verify Document</a>
+        <a href="/dashboard.html">Dashboard</a>
+        <a href="/">Login</a>
+    </nav>
+</header>
+
+<main class="container">
+    <h1 class="hero-title">Verify Any <span>Cryptographic Seal</span></h1>
+    <p class="hero-desc">
+        Enter a TruthSeal Certificate Number or upload any document to verify mathematical authenticity, issuer digital signature, and immutable blockchain anchor.
+    </p>
+
+    <section class="verify-card">
+        <div class="tab-group">
+            <button class="tab-btn active" id="tabIdBtn" onclick="setMode('id')">🔢 Verify by Seal Number</button>
+            <button class="tab-btn" id="tabFileBtn" onclick="setMode('file')">📄 Verify by Document Upload</button>
+        </div>
+
+        <!-- MODE 1: SEAL ID -->
+        <div id="modeIdSection">
+            <div class="input-row">
+                <input type="text" id="sealInput" class="text-input" placeholder="e.g. TS-2026-FC27-098224BF" autocomplete="off">
+                <button class="btn-primary" id="verifyIdBtn" onclick="verifyById()">
+                    <span>Verify Authenticity</span> ⚡
+                </button>
+            </div>
+            <div style="margin-top: 10px; font-size: 13px; color: #8fa0c0;">
+                Try latest demo seal or check <a href="/api/ledger/stats" target="_blank" style="color: #4b82ff;">blockchain stats</a>.
+            </div>
+        </div>
+
+        <!-- MODE 2: FILE UPLOAD -->
+        <div id="modeFileSection" style="display: none;">
+            <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+                <div style="font-size: 40px; margin-bottom: 8px;">📂</div>
+                <div style="font-weight: 700; font-size: 17px; margin-bottom: 4px;">Click or Drag & Drop Document File</div>
+                <div style="color: #8fa0c0; font-size: 13px;">PDF, PNG, JPG, DOCX, ZIP (Calculates SHA-256 hash locally in browser)</div>
+                <input type="file" id="fileInput" style="display: none;" onchange="handleFileSelected(this.files[0])">
+            </div>
+            <div id="selectedFileName" style="margin-top: 12px; font-size: 14px; color: #64b5f6; font-weight: 600; display: none;"></div>
+        </div>
+
+        <!-- RESULT SECTION -->
+        <div class="result-box" id="resultBox">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div id="resultBadge" class="badge green">AUTHENTIC ✓</div>
+                    <h2 id="resultTitle" style="font-size: 20px;">Document Verified Authentic</h2>
+                </div>
+                <div id="blockchainHeightBadge" style="font-size: 13px; color: #8fa0c0; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 8px;">
+                    Anchored on Block #1
+                </div>
+            </div>
+
+            <p id="resultMsg" style="margin-top: 12px; color: #e0e8f5; font-size: 15px;"></p>
+
+            <div class="meta-grid" id="metaGrid">
+                <!-- Injected via JavaScript -->
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <div>© 2026 TruthSeal. Cryptographic Ledger Network.</div>
+    <div>Zero Trust • Blockchain Verified • Tamper Proof</div>
+</footer>
+
+<script>
+    let activeMode = 'id';
+
+    function setMode(mode) {
+        activeMode = mode;
+        document.getElementById('tabIdBtn').classList.toggle('active', mode === 'id');
+        document.getElementById('tabFileBtn').classList.toggle('active', mode === 'file');
+        document.getElementById('modeIdSection').style.display = mode === 'id' ? 'block' : 'none';
+        document.getElementById('modeFileSection').style.display = mode === 'file' ? 'block' : 'none';
+    }
+
+    // Auto-fill from URL query param
+    window.addEventListener('DOMContentLoaded', () => {
+        const params = new URLSearchParams(window.location.search);
+        const seal = params.get('seal');
+        if (seal) {
+            document.getElementById('sealInput').value = seal;
+            verifyById();
+        }
+    });
+
+    async function verifyById() {
+        const sealInput = document.getElementById('sealInput').value.trim();
+        if (!sealInput) {
+            alert('Please enter a Seal Number.');
+            return;
+        }
+
+        const btn = document.getElementById('verifyIdBtn');
+        btn.disabled = true;
+        btn.innerHTML = 'Verifying... ⏳';
+
+        try {
+            const res = await fetch(`/api/seals/verify/${encodeURIComponent(sealInput)}`);
+            const data = await res.json();
+            renderResult(data);
+        } catch (e) {
+            alert('Verification request failed.');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Verify Authenticity ⚡';
+        }
+    }
+
+    async function handleFileSelected(file) {
+        if (!file) return;
+        document.getElementById('selectedFileName').textContent = `📄 Selected: ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+        document.getElementById('selectedFileName').style.display = 'block';
+
+        const formData = new FormData();
+        formData.append('document', file);
+
+        try {
+            const res = await fetch('/api/seals/verify', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            renderResult(data);
+        } catch (e) {
+            alert('File verification failed.');
+        }
+    }
+
+    function renderResult(data) {
+        const box = document.getElementById('resultBox');
+        box.style.display = 'block';
+        box.className = 'result-box ' + (data.is_authentic ? 'authentic' : (data.verdict ? data.verdict.toLowerCase() : 'tampered'));
+
+        const badge = document.getElementById('resultBadge');
+        badge.className = 'badge ' + (data.is_authentic ? 'green' : 'red');
+        badge.textContent = data.verdict || (data.is_authentic ? 'AUTHENTIC ✓' : 'INVALID ✕');
+
+        document.getElementById('resultTitle').textContent = data.is_authentic ? 'Cryptographically Authentic' : (data.verdict === 'NOT_FOUND' ? 'No Record Found' : 'Verification Issue Detected');
+        document.getElementById('resultMsg').textContent = data.message || '';
+
+        const metaGrid = document.getElementById('metaGrid');
+        if (data.seal) {
+            const s = data.seal;
+            document.getElementById('blockchainHeightBadge').textContent = `Anchored on Block #${s.blockchain_proof ? s.blockchain_proof.block_height : '0'}`;
+            metaGrid.innerHTML = `
+                <div class="meta-item">
+                    <div class="meta-label">Seal Number</div>
+                    <div class="meta-val" style="color: #4b8eff;">${s.seal_number}</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Recipient Name</div>
+                    <div class="meta-val">${s.recipient_name}</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Issuing Authority</div>
+                    <div class="meta-val">${s.issuer ? s.issuer.name : ''} (${s.issuer ? s.issuer.organization : ''})</div>
+                </div>
+                <div class="meta-item">
+                    <div class="meta-label">Document Title</div>
+                    <div class="meta-val">${s.doc_name}</div>
+                </div>
+                <div class="meta-item" style="grid-column: 1 / -1;">
+                    <div class="meta-label">Cryptographic SHA-256 Hash</div>
+                    <div class="meta-val hash-val">${s.doc_hash}</div>
+                </div>
+                <div class="meta-item" style="grid-column: 1 / -1;">
+                    <div class="meta-label">Blockchain Block Hash Proof</div>
+                    <div class="meta-val hash-val">${s.blockchain_proof ? s.blockchain_proof.block_hash : 'Confirmed'}</div>
+                </div>
+            `;
+        } else {
+            document.getElementById('blockchainHeightBadge').textContent = 'Blockchain: Unregistered';
+            metaGrid.innerHTML = `
+                <div class="meta-item" style="grid-column: 1 / -1;">
+                    <div class="meta-label">Audit Status</div>
+                    <div class="meta-val" style="color: #ff7575;">No immutable record found for the provided identifier. The file may have been altered or not yet issued.</div>
+                </div>
+            `;
+        }
+    }
+</script>
+
+</body>
+</html>

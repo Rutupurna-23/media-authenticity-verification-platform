@@ -21,8 +21,14 @@ import {
 import { MediaType } from './src/types.js';
 import { logger } from './src/backend/utils/logger.js';
 import { createRateLimiter } from './src/backend/middleware/rateLimiter.js';
-
 import { validateConfig } from './src/backend/config/envValidator.js';
+
+// @ts-ignore
+import sihAuthRoutes from './src/backend/sih/routes/authRoutes.js';
+// @ts-ignore
+import sihSealRoutes from './src/backend/sih/routes/sealRoutes.js';
+// @ts-ignore
+import sihLedgerRoutes from './src/backend/sih/routes/ledgerRoutes.js';
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -180,6 +186,13 @@ export async function createApp(): Promise<express.Express> {
       },
     });
   });
+
+  // ==========================================
+  // SIH CRYPTOGRAPHIC & LEDGER API ENDPOINTS
+  // ==========================================
+  app.use('/api/auth', sihAuthRoutes);
+  app.use('/api/seals', sihSealRoutes);
+  app.use('/api/ledger', sihLedgerRoutes);
 
   // ==========================================
   // 4. INSTITUTIONS API

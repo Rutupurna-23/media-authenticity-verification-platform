@@ -1,0 +1,11 @@
+const path = require('path');
+
+module.exports = {
+    PORT: process.env.PORT || 3000,
+    JWT_SECRET: process.env.JWT_SECRET || 'truthseal_super_secret_cryptographic_key_2026_sih',
+    JWT_EXPIRES_IN: 24 * 60 * 60 * 1000, // 24 hours
+    DB_PATH: path.join(__dirname, '..', 'data', 'truthseal.db'),
+    UPLOAD_DIR: path.join(__dirname, '..', 'data', 'uploads'),
+    CHAIN_DIFFICULTY: 1, // Proof of work difficulty for block mining
+    SYSTEM_ISSUER: 'TruthSeal Cryptographic Trust Network'
+};
