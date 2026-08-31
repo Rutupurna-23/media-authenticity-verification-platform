@@ -647,6 +647,28 @@ export async function createApp(): Promise<express.Express> {
     }
   }
 
+  // ==========================================
+  // 11. DEFENSIVE GLOBAL ERROR HANDLER
+  // ==========================================
+  app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+    logger.error('Unhandled Server Exception:', {
+      context: {
+        error: err?.message || err,
+        stack: err?.stack,
+        path: req.path,
+        method: req.method,
+      },
+    });
+
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: 'INTERNAL_SERVER_ERROR',
+        message: err?.message || 'An unexpected internal server error occurred.',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
+
   appInstance = app;
   return app;
 }
