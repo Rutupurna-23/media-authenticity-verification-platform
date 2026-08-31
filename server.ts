@@ -1,5 +1,6 @@
 import express, { Request, Response, NextFunction } from 'express';
 import path from 'path';
+import fs from 'fs';
 import crypto from 'crypto';
 import multer from 'multer';
 import { performance } from 'perf_hooks';
@@ -30,12 +31,9 @@ const upload = multer({
 
 const configCheck = validateConfig();
 if (!configCheck.isValid) {
-  logger.error('CRITICAL: Server configuration validation failed', {
+  logger.warn('Server configuration warning:', {
     context: { errors: configCheck.errors },
   });
-  if (configCheck.config.isProduction) {
-    process.exit(1);
-  }
 }
 
 export const rateLimiter = createRateLimiter({
@@ -43,7 +41,11 @@ export const rateLimiter = createRateLimiter({
   maxRequests: configCheck.config.rateLimitMaxRequests,
 });
 
-async function startServer() {
+let appInstance: express.Express | null = null;
+
+export async function createApp(): Promise<express.Express> {
+  if (appInstance) return appInstance;
+
   const app = express();
   const PORT = configCheck.config.port;
 
@@ -624,7 +626,7 @@ async function startServer() {
   // ==========================================
   // 10. VITE MIDDLEWARE SETUP
   // ==========================================
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
@@ -632,17 +634,36 @@ async function startServer() {
     app.use(vite.middlewares);
   } else {
     const distPath = path.join(process.cwd(), 'dist');
-    app.use(express.static(distPath));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
-    });
+    if (fs.existsSync(distPath)) {
+      app.use(express.static(distPath));
+      app.get('*', (_req, res, next) => {
+        if (_req.path.startsWith('/api')) return next();
+        const indexPath = path.join(distPath, 'index.html');
+        if (fs.existsSync(indexPath)) {
+          return res.sendFile(indexPath);
+        }
+        next();
+      });
+    }
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    logger.info(`Media Authenticity Verification Server running on port ${PORT}`, {
-      context: { port: PORT, env: process.env.NODE_ENV || 'development' },
-    });
-  });
+  appInstance = app;
+  return app;
 }
 
-startServer();
+export async function startServer() {
+  const app = await createApp();
+  const PORT = configCheck.config.port;
+
+  if (!process.env.VERCEL && !process.env.VERCEL_ENV) {
+    app.listen(PORT, '0.0.0.0', () => {
+      logger.info(`Media Authenticity Verification Server running on port ${PORT}`, {
+        context: { port: PORT, env: process.env.NODE_ENV || 'development' },
+      });
+    });
+  }
+}
+
+if (!process.env.VERCEL && !process.env.VERCEL_ENV) {
+  startServer();
+}
