@@ -29,6 +29,28 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'architecture' as const, label: 'Functions & Architecture', icon: Cpu },
   ];
 
+  const handleTabClick = (tabId: 'verify' | 'issuer' | 'admin' | 'architecture') => {
+    setTab(tabId);
+    if (tabId === 'issuer' && userRole === 'PUBLIC_RECIPIENT') {
+      setUserRole('INSTITUTIONAL_ISSUER');
+    } else if (tabId === 'admin' && userRole === 'PUBLIC_RECIPIENT') {
+      setUserRole('SYSTEM_ADMIN');
+    } else if (tabId === 'verify' && (userRole === 'INSTITUTIONAL_ISSUER' || userRole === 'SYSTEM_ADMIN')) {
+      setUserRole('PUBLIC_RECIPIENT');
+    }
+  };
+
+  const handleRoleChange = (newRole: UserRole) => {
+    setUserRole(newRole);
+    if (newRole === 'INSTITUTIONAL_ISSUER') {
+      setTab('issuer');
+    } else if (newRole === 'SYSTEM_ADMIN') {
+      setTab('admin');
+    } else if (newRole === 'PUBLIC_RECIPIENT') {
+      setTab('verify');
+    }
+  };
+
   return (
     <header className="glass-surface border-b border-slate-800 text-slate-100 sticky top-0 z-50 shadow-lg shadow-slate-950/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -36,7 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Brand Logo & Title */}
           <motion.div
             className="flex items-center space-x-3 cursor-pointer group"
-            onClick={() => setTab('verify')}
+            onClick={() => handleTabClick('verify')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -66,7 +88,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <button
                   key={tab.id}
                   id={`nav-tab-${tab.id}`}
-                  onClick={() => setTab(tab.id)}
+                  onClick={() => handleTabClick(tab.id)}
                   className={`relative px-3.5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center space-x-1.5 ${
                     isActive ? 'text-cyan-300 font-semibold' : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
                   }`}
@@ -97,16 +119,8 @@ export const Navbar: React.FC<NavbarProps> = ({
               <select
                 id="select-user-role"
                 value={userRole}
-                onChange={(e) => {
-                  const r = e.target.value as UserRole;
-                  setUserRole(r);
-                  if (r === 'INSTITUTIONAL_ISSUER' && currentTab === 'verify') {
-                    setTab('issuer');
-                  } else if (r === 'SYSTEM_ADMIN' && currentTab === 'verify') {
-                    setTab('admin');
-                  }
-                }}
-                className="bg-slate-900/90 border border-slate-700/80 text-cyan-300 text-xs rounded-lg px-2.5 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold transition-all"
+                onChange={(e) => handleRoleChange(e.target.value as UserRole)}
+                className="bg-slate-900/90 border border-slate-700/80 text-cyan-300 text-xs rounded-lg px-2.5 py-1 focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold transition-all cursor-pointer"
               >
                 <option value="PUBLIC_RECIPIENT">Public Recipient</option>
                 <option value="INSTITUTIONAL_ISSUER">Institutional Issuer</option>
