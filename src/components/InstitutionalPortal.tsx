@@ -179,10 +179,37 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
     }
   };
 
+  // Synchronize selected credential when institution or credentials list changes
+  React.useEffect(() => {
+    const defaultCred = activeCredentials[0] || institutionCredentials[0];
+    if (defaultCred) {
+      setSelectedCredId(defaultCred.id);
+    } else {
+      setSelectedCredId('');
+    }
+  }, [selectedInstitutionId, credentials]);
+
+  const selectedCredential =
+    institutionCredentials.find((c) => c.id === selectedCredId) ||
+    activeCredentials[0] ||
+    institutionCredentials[0] ||
+    null;
+
+  const getAuthorityTrustState = () => {
+    if (!selectedCredential) return 'NO_CREDENTIAL';
+    if (selectedCredential.status === 'REVOKED') return 'REVOKED';
+    if (selectedCredential.status === 'EXPIRED') return 'EXPIRED';
+    if (selectedCredential.status === 'ACTIVE') return 'ACTIVE';
+    return 'NO_CREDENTIAL';
+  };
+
+  const trustState = getAuthorityTrustState();
+  const isSigningAllowed = trustState === 'ACTIVE';
+
   return (
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Header with Institution Profile */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center space-x-2">
             <Building2 className="w-5 h-5 text-indigo-400" />
@@ -195,20 +222,120 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
           </p>
         </div>
 
-        {/* Institution Switcher */}
-        <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5 min-w-[240px]">
-          <label className="text-[11px] font-semibold uppercase text-slate-400 block">Active Issuing Authority</label>
-          <select
-            value={currentInstitution?.id}
-            onChange={(e) => setSelectedInstitutionId(e.target.value)}
-            className="w-full bg-slate-900 border border-slate-700 text-white text-xs rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-medium"
-          >
-            {institutions.map((i) => (
-              <option key={i.id} value={i.id}>
-                {i.name}
-              </option>
-            ))}
-          </select>
+        {/* Active Issuing Authority & Cryptographic Trust Card */}
+        <div className="glass-surface p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-3 min-w-[320px] max-w-md shadow-2xl relative overflow-hidden">
+          <div className="flex items-center justify-between">
+            <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
+              <span>ACTIVE ISSUING AUTHORITY</span>
+            </label>
+            <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">
+              KMS / HSM Enclave
+            </span>
+          </div>
+
+          {/* Authority Dropdown */}
+          <div className="space-y-1.5">
+            <div className="relative">
+              <select
+                id="select-issuing-authority"
+                value={currentInstitution?.id}
+                onChange={(e) => setSelectedInstitutionId(e.target.value)}
+                className="w-full bg-slate-950/90 border border-slate-700/80 text-white text-xs rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-500 font-semibold cursor-pointer appearance-none pr-8"
+              >
+                {institutions.map((i) => (
+                  <option key={i.id} value={i.id}>
+                    🏛 {i.name}
+                  </option>
+                ))}
+              </select>
+              <div className="absolute right-3 top-2.5 pointer-events-none text-slate-400 text-xs">▼</div>
+            </div>
+
+            {/* Credential Selector (if institution has multiple credentials) */}
+            {institutionCredentials.length > 1 && (
+              <select
+                id="select-issuing-credential"
+                value={selectedCredId}
+                onChange={(e) => setSelectedCredId(e.target.value)}
+                className="w-full bg-slate-900 border border-indigo-900/80 text-indigo-300 text-xs rounded-xl px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 font-mono font-medium"
+              >
+                {institutionCredentials.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    Key: {c.id} ({c.status})
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          {/* Trust Status Badge */}
+          <div>
+            {trustState === 'ACTIVE' && (
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-emerald-950/90 border border-emerald-700/80 text-emerald-300 text-xs font-mono font-semibold shadow-inner">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>● AUTHORIZED TO ISSUE</span>
+              </div>
+            )}
+
+            {trustState === 'REVOKED' && (
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-rose-950/90 border border-rose-700/80 text-rose-300 text-xs font-mono font-semibold shadow-inner">
+                <span className="w-2 h-2 rounded-full bg-rose-500" />
+                <span>● CREDENTIAL REVOKED</span>
+              </div>
+            )}
+
+            {trustState === 'EXPIRED' && (
+              <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-950/90 border border-amber-700/80 text-amber-300 text-xs font-mono font-semibold shadow-inner">
+                <span className="w-2 h-2 rounded-full bg-amber-400" />
+                <span>● CREDENTIAL EXPIRED</span>
+              </div>
+            )}
+
+            {trustState === 'NO_CREDENTIAL' && (
+              <div className="space-y-1">
+                <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-950/90 border border-slate-700/80 text-slate-400 text-xs font-mono font-semibold">
+                  <span className="w-2 h-2 rounded-full bg-slate-500" />
+                  <span>● NO ACTIVE CREDENTIAL</span>
+                </div>
+                <p className="text-[11px] text-amber-400/90 font-mono italic pl-1">
+                  Contact System Admin to obtain an issuing credential.
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Compact Trust Metadata Grid */}
+          <div className="bg-slate-950/80 rounded-xl p-3 border border-slate-800/80 space-y-1.5 text-xs font-mono">
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-slate-500">Credential</span>
+              <span className="text-slate-200 font-semibold truncate max-w-[170px]">{selectedCredential?.id || 'Unassigned'}</span>
+            </div>
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-slate-500">Signing</span>
+              <span className="text-cyan-300 font-semibold">{selectedCredential?.keyAlgorithm || 'RSA-PSS-SHA256'}</span>
+            </div>
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-slate-500">Protection</span>
+              <span className="text-indigo-300 font-semibold">KMS / HSM</span>
+            </div>
+            <div className="flex items-center justify-between text-slate-400">
+              <span className="text-slate-500">Status</span>
+              <span
+                className={`font-bold ${
+                  trustState === 'ACTIVE'
+                    ? 'text-emerald-400'
+                    : trustState === 'REVOKED'
+                    ? 'text-rose-400'
+                    : trustState === 'EXPIRED'
+                    ? 'text-amber-400'
+                    : 'text-slate-500'
+                }`}
+              >
+                {selectedCredential?.status || 'No Credential'}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -444,16 +571,16 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
                           </div>
                         ) : (
                           <button
-                            disabled={isSigning || activeCredentials.length === 0}
+                            disabled={isSigning || !isSigningAllowed}
                             onClick={() => handleSignMedia(record.id)}
-                            className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center space-x-1.5 transition disabled:opacity-40 cursor-pointer"
+                            className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs flex items-center space-x-1.5 transition disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                           >
                             {isSigning ? (
                               <RefreshCw className="w-3 h-3 animate-spin" />
                             ) : (
                               <Key className="w-3 h-3" />
                             )}
-                            <span>{isSigning ? 'Signing...' : 'Sign with KMS'}</span>
+                            <span>{isSigning ? 'Signing...' : trustState === 'REVOKED' ? 'Revoked Key' : 'Sign with KMS'}</span>
                           </button>
                         )}
                       </td>

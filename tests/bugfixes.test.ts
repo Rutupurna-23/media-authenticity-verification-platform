@@ -152,6 +152,64 @@ async function runBugfixTests() {
   );
   assert(revokedCred.status === 'REVOKED', 'Test G: CredentialService.revokeCredential revokes credential');
 
+  // =========================================================================
+  // SECTION 3: ACTIVE ISSUING AUTHORITY TRUST & SECURITY TESTS
+  // =========================================================================
+  console.log('\n[SECTION 3] Testing Active Issuing Authority Trust, Revocation & Key Security...');
+
+  // Test H: Zero-Exposure Guarantee (No private key fields in returned credentials)
+  const allCreds = await db.listCredentials();
+  const exposedKeys = allCreds.filter(
+    (c: any) => c.privateKey || c.privateKeyPem || c.secret || c.privateKeyVault
+  );
+  assert(exposedKeys.length === 0, 'Test H: Zero-Exposure Guarantee: No credentials expose private key material');
+
+  // Test I: Attempting to sign with a REVOKED credential is explicitly blocked
+  let revokedSignError: Error | null = null;
+  try {
+    await MediaService.signMedia(
+      FEMA_ISSUER_AUTH,
+      {
+        mediaRecordId: newMedia.id,
+        credentialId: 'cred-fema-compromised-2024',
+        institutionId: 'inst-fema',
+      },
+      (id) => db.getCredential(id),
+      (id) => db.getMediaRecord(id),
+      (id, updates) => db.updateMediaRecord(id, updates)
+    );
+  } catch (err: any) {
+    revokedSignError = err;
+  }
+  assert(
+    revokedSignError !== null &&
+      (revokedSignError.message.includes('FAILED_PRECONDITION') || revokedSignError.message.includes('REVOKED')),
+    'Test I: Signing with a REVOKED issuing credential is strictly blocked with non-active status error'
+  );
+
+  // Test J: Tenant Isolation (Institution A cannot sign with Institution B credential)
+  let tenantMismatchError: Error | null = null;
+  try {
+    await MediaService.signMedia(
+      FEMA_ISSUER_AUTH,
+      {
+        mediaRecordId: newMedia.id,
+        credentialId: 'cred-who-active',
+        institutionId: 'inst-fema',
+      },
+      (id) => db.getCredential(id),
+      (id) => db.getMediaRecord(id),
+      (id, updates) => db.updateMediaRecord(id, updates)
+    );
+  } catch (err: any) {
+    tenantMismatchError = err;
+  }
+  assert(
+    tenantMismatchError !== null &&
+      (tenantMismatchError.message.includes('PERMISSION_DENIED') || tenantMismatchError.message.includes('does not belong')),
+    'Test J: Tenant Isolation: Institution A cannot sign media using Institution B credential'
+  );
+
   console.log(`\n======================================================`);
   console.log(`🏁 TARGETED BUGFIX TESTS: ${passed} PASSED, ${failed} FAILED`);
   console.log(`======================================================\n`);
