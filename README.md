@@ -1,45 +1,83 @@
-# Media Authenticity Verification Platform
+# 🛡️ TruthSeal — Media Authenticity Verification Platform
 
-A zero-trust cryptographic verification platform and institutional media provenance gateway powered by Firebase Firestore, Cloud Storage, Firebase Cloud Functions v2, Asymmetric KMS Digital Signatures (RSA-PSS / ECDSA), Multimodal AI Forensic Inspection (Google Gemini 2.5 Flash), and Blockchain Provenance Anchoring.
+TruthSeal is an enterprise-grade, multi-tenant media authenticity verification platform designed for government agencies, emergency response authorities, healthcare organizations, and public news outlets (e.g., FEMA, WHO, NOAA).
+
+The platform safeguards media integrity against deepfakes, unauthorized manipulation, and misinformation using **Cryptographic KMS Digital Signatures (RSA-PSS / ECDSA)**, **Immutable Provenance Logs**, **AI Forensic Analysis**, and **Zero-Exposure Key Management**.
 
 ---
 
-## Architecture Overview
+## 📐 Architecture Overview
 
 ```
-                                [ CLIENT LAYER ]
-          React 19 SPA (Vite 6, Tailwind CSS 4, Lucide Icons, Web Crypto)
+                                [ CLIENT TIER ]
+          React 19 Single Page Application (Vite 6, Tailwind CSS 4, Lucide Icons)
           ├── Public Verification Portal (Zero-Auth, Drag-and-Drop, Real-Time Hash)
-          ├── Institutional Portal (Role-Gated Upload, KMS Asymmetric Signing)
-          ├── Admin Console (Keystore Management, Credential Revocation, Audit Logs)
-          └── Architecture & Security Viewer (Cloud Functions & Rule Specifications)
+          ├── Institutional Portal (Active Issuing Authority Dashboard & Media Signer)
+          ├── Admin Console (Keystore Management, Key Revocation, Audit Logs)
+          └── Architecture & Security Viewer (Cloud Functions & Data Flow Diagrams)
                                        │
                                        ▼ (HTTPS / JSON / Multipart)
-                                [ INGRESS LAYER ]
-         Express 4.21 Gateway & Live Firebase Functions v2 Triggers
-         ├── authMiddleware (Bearer ID Token Verification via Firebase Admin Auth)
-         ├── GET  /api/health (System Telemetry & Multi-Service Health)
-         ├── GET  /api/verification-logs/stats (Audit Metrics & Verdict Distributions)
-         ├── POST /api/media/upload (File Validation, SHA-256 Digest, Bucket Storage)
-         ├── POST /api/media/sign (KMS Cryptographic Signing & Blockchain Anchoring)
-         ├── POST /api/media/verify (Signature Math, Revocation Check, AI Forensics)
-         └── POST /api/credentials/revoke (SYSTEM_ADMIN Keystore Invalidation)
+                                [ INGRESS TIER ]
+          Express 4.21 Gateway & Live Firebase Cloud Functions v2 Triggers
+          ├── authMiddleware (Bearer ID Token Verification via Firebase Admin Auth)
+          ├── rateLimiter (Sliding Window API Rate Protection)
+          ├── GET  /api/credentials/active (Session-Derived Issuing Authority)
+          ├── POST /api/media/upload (File Validation, SHA-256 Digest, Bucket Storage)
+          ├── POST /api/media/sign (KMS Cryptographic Signing & Blockchain Anchoring)
+          ├── POST /api/media/verify (Signature Math, Revocation Check, AI Forensics)
+          └── POST /api/credentials/revoke (SYSTEM_ADMIN Keystore Invalidation)
                                        │
                 ┌──────────────────────┴──────────────────────┐
                 ▼                                             ▼
      [ STORAGE & DATABASE ]                        [ CRYPTO & AI ENGINES ]
   Cloud Firestore (Admin SDK)                   NodeCryptoKMSProvider (GCP KMS Ready)
-  ├── institutions (Verified Agencies)          ├── RSA-PSS-SHA256 (2048-bit Private Vault)
+  ├── institutions (Verified Agencies)          ├── RSA-PSS-SHA256 (2048-bit Vault)
   ├── credentials (SPKI Public Keys)            └── ECDSA-P256-SHA256 (Prime256v1 Vault)
   ├── mediaRecords (Manifests & Hashes)         GeminiDeepfakeDetector (Gemini 2.5 Flash)
-  └── verificationLogs (Immutable Audit Trail)  └── Multimodal Synthetic Marker Analysis
+  └── verificationLogs (Immutable Audit Logs)   └── Multimodal Synthetic Marker Analysis
   Google Cloud Storage Bucket                   BlockchainProvenanceProvider (L2 Provenance)
   └── media/institutions/{id}/{timestamp}-{file}└── Immutable SHA-256 Transaction Anchors
 ```
 
 ---
 
-## Quick Start (Local Development)
+## 📁 Clean Repository Structure
+
+```
+media-authenticity-verification-platform/
+├── frontend/                       # React 19 Single Page Application
+│   ├── App.tsx                     # Main Router & Global State Controller
+│   ├── index.css                   # Core Design System & Tokens
+│   ├── components/
+│   │   ├── portals/                # Portal Feature Views
+│   │   │   ├── InstitutionalPortal.tsx   # Active Issuing Authority Dashboard
+│   │   │   ├── PublicVerification.tsx    # Public Verification Interface & Deepfake Inspector
+│   │   │   ├── AdminConsole.tsx          # Authority Lifecycle & Key Revocation
+│   │   │   └── LoginPage.tsx             # RBAC Authentication & Role Switcher
+│   │   └── ui/                     # Shared UI Components
+│   │       ├── Navbar.tsx                # Dynamic Header & Tenant Selector
+│   │       ├── ArchitectureViewer.tsx    # Interactive Data Flow Viewer
+│   │       └── CyberBackground.tsx       # Animated Matrix Background
+├── backend/                        # Node.js / Express Application Server
+│   ├── db.ts                       # Dual-Mode Database Abstraction (Firestore + InMemoryDB)
+│   ├── config/                     # Environment Validator
+│   ├── firestore/                  # Firestore Collections & Repositories
+│   ├── middleware/                 # Auth & Rate Limiting Middleware
+│   ├── storage/                    # Binary Media Storage Service
+│   └── backups/                    # Offline Backup Engines & Utilities
+├── functions/                      # Firebase Cloud Functions Engine
+├── tests/                          # Automated Regression & Test Suites (121 Tests)
+├── scripts/
+│   ├── prototype-audit.ts          # Master 28-Scenario Prototype Audit Runner
+│   └── run-tests.ts                # Dual-Engine Test Harness
+├── DOCUMENTATION.md                # Full Architecture Manual & API Specs
+├── DEPLOYMENT.md                   # Production Deployment Manual
+└── server.ts                       # Express Production Server & Vite SSR Middleware
+```
+
+---
+
+## ⚡ Quick Start (Local Development)
 
 ### 1. Prerequisites
 - Node.js `v20.x` or `v22.x`
@@ -52,25 +90,39 @@ npm install
 npm --prefix functions install
 ```
 
-### 3. Start Local Development Gateway & Firebase Emulators
+### 3. Start Local Development Server
 ```bash
-# Start Firebase Firestore and Storage emulators
-npx firebase-tools emulators:start --only firestore,storage
-
-# In a separate terminal, start the web server
+# Start the local Express server & Vite frontend
 npm run dev
-```
-
-### 4. Run Automated Emulator Regression Tests
-```bash
-npx firebase-tools emulators:exec --only firestore,storage "npm test"
+# App opens on: http://localhost:3000
 ```
 
 ---
 
-## Continuous Integration & Deployment (CI/CD)
+## 🧪 Testing & Audit Verification
 
-The platform is equipped with automated GitHub Actions pipelines:
+```bash
+# 1. Run TypeScript Typecheck
+npm run lint
+
+# 2. Build Production Bundle
+npm run build
+
+# 3. Run 121 Automated Unit & Integration Tests
+npm test
+
+# 4. Run 28-Scenario Master Prototype Audit
+npx tsx scripts/prototype-audit.ts
+
+# 5. Run Live Firebase Emulator Test Suite
+npm run test:emulator
+```
+
+---
+
+## 🚀 Continuous Integration & Deployment (CI/CD)
+
+The platform enforces automated GitHub Actions quality gates:
 
 ```
 Code Push / Pull Request
@@ -83,13 +135,13 @@ Code Push / Pull Request
          ├── 3. Typecheck & Lint (npm run lint)
          ├── 4. Build SPA & Server (npm run build)
          ├── 5. Compile Cloud Functions (npm --prefix functions run build)
-         └── 6. Run 42+ Emulator Tests (npx firebase-tools emulators:exec)
+         └── 6. Run 121 Automated & Live Emulator Tests (npm test)
          │
          ▼
 [ .github/workflows/deploy.yml ] (On main branch merge)
          │
-         ├── 1. Authenticate with Google Cloud / Firebase (Workload Identity / Secrets)
+         ├── 1. Authenticate with Google Cloud / Firebase
          └── 2. Deploy Firestore Rules, Storage Rules, and Cloud Functions v2
 ```
 
-For full deployment instructions, environment variable setup, and rollback instructions, refer to **[`DEPLOYMENT.md`](DEPLOYMENT.md)**.
+For full technical specifications, API payload schemas, and architecture diagrams, refer to **[`DOCUMENTATION.md`](DOCUMENTATION.md)** and **[`DEPLOYMENT.md`](DEPLOYMENT.md)**.
