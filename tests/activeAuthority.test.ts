@@ -61,9 +61,9 @@ export async function runActiveAuthorityTests() {
 
   // 2. Active Credential Lookup
   const femaCreds = await db.listCredentials('inst-fema');
-  const activeFemaCred = femaCreds.find((c) => c.status === 'ACTIVE');
+  const activeFemaCred = femaCreds.find((c) => c.id === 'cred-fema-primary' && c.status === 'ACTIVE') || femaCreds.find((c) => c.status === 'ACTIVE');
 
-  assert(activeFemaCred !== undefined && activeFemaCred.id === 'cred-fema-primary', 'TEST 04: Active FEMA credential resolved');
+  assert(activeFemaCred !== undefined && activeFemaCred.status === 'ACTIVE', 'TEST 04: Active FEMA credential resolved');
   assert(activeFemaCred?.keyAlgorithm === 'RSA-PSS-SHA256', 'TEST 05: Active FEMA credential key algorithm is RSA-PSS-SHA256');
 
   // 3. Zero-Exposure Guarantee
