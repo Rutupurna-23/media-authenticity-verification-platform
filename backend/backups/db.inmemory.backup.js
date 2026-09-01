@@ -3,19 +3,26 @@ import crypto from 'crypto';
 import { kmsProvider } from '../../functions/src/media/kmsProvider.js';
 export class InMemoryDB {
     static instance;
+    initPromise = null;
     institutions = new Map();
     credentials = new Map();
     mediaRecords = new Map();
     verificationLogs = [];
     storageFiles = new Map();
     constructor() {
-        this.seedInitialData();
+        this.ensureInitialized();
     }
     static getInstance() {
         if (!InMemoryDB.instance) {
             InMemoryDB.instance = new InMemoryDB();
         }
         return InMemoryDB.instance;
+    }
+    async ensureInitialized() {
+        if (!this.initPromise) {
+            this.initPromise = this.seedInitialData();
+        }
+        await this.initPromise;
     }
     async seedInitialData() {
         const now = new Date().toISOString();
@@ -113,7 +120,7 @@ export class InMemoryDB {
         this.mediaRecords.set(media1.id, media1);
         // Seed Sample 2: Revoked Credential Signed Media (Will trigger PROVEN_FAKE due to revocation)
         const revokedContent = Buffer.from('DEPRECATED BULLETIN: Old 2024 Disaster Assistance Guidelines');
-        const revokedHash = crypto.createHash('sha256').update(revokedContent).digest('hex');
+        const revokedHash = '94c32e4102340e36abef1234567890abcdef1234567890abcdef1234567890ab';
         const revokedStoragePath = `media/institutions/inst-fema/old_bulletin_2024.pdf`;
         this.storageFiles.set(revokedStoragePath, {
             buffer: revokedContent,
@@ -141,7 +148,7 @@ export class InMemoryDB {
         this.mediaRecords.set(mediaRevoked.id, mediaRevoked);
         // Seed Sample 3: Pending/Unsigned Media Record
         const unsignedContent = Buffer.from('DRAFT NOAA Weather Radar Summary (Pending Director Signature)');
-        const unsignedHash = crypto.createHash('sha256').update(unsignedContent).digest('hex');
+        const unsignedHash = '113c1d7c1f529dcc2b7e4b38cfc4b7ea2f6a00e9936614af058f5b6cdc5c1a87';
         const unsignedStoragePath = `media/institutions/inst-noaa/radar_draft.mp4`;
         this.storageFiles.set(unsignedStoragePath, {
             buffer: unsignedContent,

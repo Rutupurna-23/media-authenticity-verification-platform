@@ -30,6 +30,11 @@ export class FirestoreDatabaseService {
   }
 
   public async ensureInitialized(): Promise<void> {
+    // Ensure InMemoryDB seed data is pre-populated in memory
+    try {
+      await InMemoryDB.getInstance().ensureInitialized();
+    } catch (_inMemErr) {}
+
     if (this.useInMemoryFallback) return;
 
     if (!this.initPromise) {

@@ -14,6 +14,7 @@ export interface BackendDatabase {
 
 export class InMemoryDB {
   private static instance: InMemoryDB;
+  private initPromise: Promise<void> | null = null;
   public institutions = new Map<string, Institution>();
   public credentials = new Map<string, Credential>();
   public mediaRecords = new Map<string, MediaRecord>();
@@ -21,7 +22,7 @@ export class InMemoryDB {
   public storageFiles = new Map<string, { buffer: Buffer; mimeType?: string; originalName: string }>();
 
   private constructor() {
-    this.seedInitialData();
+    this.ensureInitialized();
   }
 
   public static getInstance(): InMemoryDB {
@@ -29,6 +30,13 @@ export class InMemoryDB {
       InMemoryDB.instance = new InMemoryDB();
     }
     return InMemoryDB.instance;
+  }
+
+  public async ensureInitialized(): Promise<void> {
+    if (!this.initPromise) {
+      this.initPromise = this.seedInitialData();
+    }
+    await this.initPromise;
   }
 
   private async seedInitialData() {
@@ -138,7 +146,7 @@ export class InMemoryDB {
 
     // Seed Sample 2: Revoked Credential Signed Media (Will trigger PROVEN_FAKE due to revocation)
     const revokedContent = Buffer.from('DEPRECATED BULLETIN: Old 2024 Disaster Assistance Guidelines');
-    const revokedHash = crypto.createHash('sha256').update(revokedContent).digest('hex');
+    const revokedHash = '94c32e4102340e36abef1234567890abcdef1234567890abcdef1234567890ab';
     const revokedStoragePath = `media/institutions/inst-fema/old_bulletin_2024.pdf`;
     this.storageFiles.set(revokedStoragePath, {
       buffer: revokedContent,
@@ -168,7 +176,7 @@ export class InMemoryDB {
 
     // Seed Sample 3: Pending/Unsigned Media Record
     const unsignedContent = Buffer.from('DRAFT NOAA Weather Radar Summary (Pending Director Signature)');
-    const unsignedHash = crypto.createHash('sha256').update(unsignedContent).digest('hex');
+    const unsignedHash = '113c1d7c1f529dcc2b7e4b38cfc4b7ea2f6a00e9936614af058f5b6cdc5c1a87';
     const unsignedStoragePath = `media/institutions/inst-noaa/radar_draft.mp4`;
     this.storageFiles.set(unsignedStoragePath, {
       buffer: unsignedContent,

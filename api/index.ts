@@ -3,6 +3,14 @@ import { createApp } from '../server.js';
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   try {
+    if (req.url && req.url.startsWith('/api/index.ts')) {
+      const urlObj = new URL(req.url, 'http://localhost');
+      const realPath = urlObj.searchParams.get('path') || urlObj.searchParams.get('url');
+      if (realPath) {
+        req.url = realPath.startsWith('/api') ? realPath : `/api${realPath}`;
+      }
+    }
+
     const app = await createApp();
     return app(req, res);
   } catch (error: any) {
