@@ -238,6 +238,62 @@ export async function createApp(): Promise<express.Express> {
   // ==========================================
   // 5. CREDENTIALS API (Issue & Revoke)
   // ==========================================
+  app.get('/api/credentials/active', optionalAuth, async (req, res) => {
+    try {
+      const auth = req.auth;
+      const requestedInstId = (req.query.institutionId as string) || (req.headers['x-institution-id'] as string);
+
+      let targetInstId: string | undefined = requestedInstId;
+
+      if (auth?.role === 'INSTITUTIONAL_ISSUER') {
+        targetInstId = auth.institutionId || targetInstId || 'inst-fema';
+      }
+
+      if (!targetInstId) {
+        targetInstId = 'inst-fema';
+      }
+
+      const institution = await db.getInstitution(targetInstId);
+      if (!institution) {
+        return res.status(404).json({ error: `NOT_FOUND: Institution '${targetInstId}' not found.` });
+      }
+
+      const credentials = await db.listCredentials(targetInstId);
+      const activeCred = credentials.find((c) => c.status === 'ACTIVE') || null;
+
+      const safeCredential = activeCred
+        ? {
+            id: activeCred.id,
+            institutionId: activeCred.institutionId,
+            status: activeCred.status,
+            keyAlgorithm: activeCred.keyAlgorithm || 'RSA-PSS-SHA256',
+            protection: 'KMS / HSM',
+            createdAt: activeCred.createdAt,
+            expiresAt: activeCred.expiresAt || null,
+          }
+        : null;
+
+      const safeCredentialsList = credentials.map((c) => ({
+        id: c.id,
+        institutionId: c.institutionId,
+        status: c.status,
+        keyAlgorithm: c.keyAlgorithm || 'RSA-PSS-SHA256',
+        protection: 'KMS / HSM',
+        createdAt: c.createdAt,
+        revokedAt: c.revokedAt || null,
+        revocationReason: c.revocationReason || null,
+      }));
+
+      res.json({
+        institution,
+        credential: safeCredential,
+        credentials: safeCredentialsList,
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message || 'Error fetching active issuing credential.' });
+    }
+  });
+
   app.get('/api/credentials', optionalAuth, async (req, res) => {
     try {
       const requestedInstitutionId = req.query.institutionId as string | undefined;
