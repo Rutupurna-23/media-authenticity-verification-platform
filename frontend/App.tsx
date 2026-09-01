@@ -5,13 +5,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Navbar } from './components/Navbar.js';
-import { LoginPage } from './components/LoginPage.js';
-import { PublicVerification } from './components/PublicVerification.js';
-import { InstitutionalPortal } from './components/InstitutionalPortal.js';
-import { AdminConsole } from './components/AdminConsole.js';
-import { ArchitectureViewer } from './components/ArchitectureViewer.js';
-import { CyberBackground } from './components/CyberBackground.js';
+import { Navbar } from './components/ui/Navbar.js';
+import { LoginPage } from './components/portals/LoginPage.js';
+import { PublicVerification } from './components/portals/PublicVerification.js';
+import { InstitutionalPortal } from './components/portals/InstitutionalPortal.js';
+import { AdminConsole } from './components/portals/AdminConsole.js';
+import { ArchitectureViewer } from './components/ui/ArchitectureViewer.js';
+import { CyberBackground } from './components/ui/CyberBackground.js';
 import { UserRole, Institution, Credential, MediaRecord, VerificationLog } from '../types.js';
 import { Shield } from 'lucide-react';
 

@@ -1,6 +1,6 @@
 import * as path from 'path';
 import crypto from 'crypto';
-import { kmsProvider } from '../functions/src/media/kmsProvider.js';
+import { kmsProvider } from '../../functions/src/media/kmsProvider.js';
 export class InMemoryDB {
     static instance;
     institutions = new Map();

@@ -1,8 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import crypto from 'crypto';
-import { Institution, Credential, MediaRecord, VerificationLog, UserProfile, UserRole } from '../types.js';
-import { kmsProvider, NodeCryptoKMSProvider } from '../functions/src/media/kmsProvider.js';
+import { Institution, Credential, MediaRecord, VerificationLog, UserProfile, UserRole } from '../../types.js';
+import { kmsProvider, NodeCryptoKMSProvider } from '../../functions/src/media/kmsProvider.js';
 
 export interface BackendDatabase {
   institutions: Map<string, Institution>;

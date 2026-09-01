@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Building2, Lock, Cpu, Search, LogOut, User } from 'lucide-react';
-import { UserRole, Institution } from '../../types.js';
+import { UserRole, Institution } from '../../../types.js';
 
 interface NavbarProps {
   currentTab: 'verify' | 'issuer' | 'admin' | 'architecture';

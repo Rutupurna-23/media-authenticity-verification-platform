@@ -15,7 +15,7 @@ import {
   History,
   ShieldCheck,
 } from 'lucide-react';
-import { Institution, Credential, VerificationLog } from '../../types.js';
+import { Institution, Credential, VerificationLog } from '../../../types.js';
 
 interface AdminConsoleProps {
   institutions: Institution[];

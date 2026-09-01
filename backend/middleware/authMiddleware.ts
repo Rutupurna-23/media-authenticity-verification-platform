@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
-import { adminAuth } from '../functions/src/auth/firebaseAdmin.js';
-import { AuthContext } from '../functions/src/auth/authService.js';
-import { UserRole } from '../types.js';
+import { adminAuth } from '../../functions/src/auth/firebaseAdmin.js';
+import { AuthContext } from '../../functions/src/auth/authService.js';
+import { UserRole } from '../../types.js';
 
 declare global {
   namespace Express {

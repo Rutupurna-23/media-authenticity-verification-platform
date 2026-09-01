@@ -3,8 +3,8 @@ import {
   Credential,
   MediaRecord,
   VerificationLog,
-} from '../types.js';
-import { firestore } from './firebase.js';
+} from '../../types.js';
+import { firestore } from '../firebase.js';
 
 const COLLECTIONS = {
   institutions: 'institutions',

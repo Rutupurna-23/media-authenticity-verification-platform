@@ -1,4 +1,4 @@
-import { firestore } from './firebase.js';
+import { firestore } from '../firebase.js';
 
 async function testFirestore() {
   const testRef = firestore.collection('_system_tests').doc('connection-test');

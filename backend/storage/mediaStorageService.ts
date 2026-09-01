@@ -117,7 +117,7 @@ export class MediaStorageService {
       });
     } catch (_storageErr) {
       // Fallback for local testing / offline mode when storage emulator is unavailable
-      const { InMemoryDB } = await import('../db.inmemory.backup.js');
+      const { InMemoryDB } = await import('../backups/db.inmemory.backup.js');
       await InMemoryDB.getInstance().saveStorageFile(storagePath, params.fileBuffer, contentType, params.fileName);
     }
 
@@ -172,7 +172,7 @@ export class MediaStorageService {
       // Fallback to InMemoryDB storage files
     }
 
-    const { InMemoryDB } = await import('../db.inmemory.backup.js');
+    const { InMemoryDB } = await import('../backups/db.inmemory.backup.js');
     const file = InMemoryDB.getInstance().getStorageFile(storagePath);
     return {
       buffer: file.buffer,
@@ -194,7 +194,7 @@ export class MediaStorageService {
     } catch (_err) {
       // Fallback check
     }
-    const { InMemoryDB } = await import('../db.inmemory.backup.js');
+    const { InMemoryDB } = await import('../backups/db.inmemory.backup.js');
     try {
       return Boolean(InMemoryDB.getInstance().getStorageFile(storagePath));
     } catch (_err) {

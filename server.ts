@@ -17,7 +17,7 @@ import {
   requireAuth,
   optionalAuth,
   requireRole,
-} from './backend/authMiddleware.js';
+} from './backend/middleware/authMiddleware.js';
 import { MediaType } from './types.js';
 import { logger } from './backend/utils/logger.js';
 import { createRateLimiter } from './backend/middleware/rateLimiter.js';
