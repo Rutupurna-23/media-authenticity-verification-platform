@@ -48,7 +48,7 @@ jobs:
         run: npm --prefix functions run build
 
       - name: Execute Full Regression Suite Before Deployment
-        run: npx firebase-tools emulators:exec --only firestore,storage "npm test"
+        run: npx firebase-tools emulators:exec --only firestore,storage --project media-authenticity-platform --non-interactive "npm test"
         env:
           CI: true
           NODE_ENV: test

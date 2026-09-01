@@ -8,7 +8,7 @@ function isPortOpenSync(port: number): boolean {
     const res = spawnSync('node', ['-e', `
       const net = require('net');
       const socket = new net.Socket();
-      socket.setTimeout(200);
+      socket.setTimeout(1500);
       socket.on('connect', () => { socket.destroy(); process.exit(0); });
       socket.on('error', () => process.exit(1));
       socket.on('timeout', () => process.exit(1));

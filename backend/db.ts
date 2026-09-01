@@ -35,10 +35,19 @@ export class FirestoreDatabaseService {
     if (!this.initPromise) {
       this.initPromise = (async () => {
         try {
-          const timeoutPromise = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('Firestore connection timeout (emulator inactive)')), 1500)
-          );
-          await Promise.race([seedInitialFirestoreData(), timeoutPromise]);
+          const timeoutMs = process.env.CI || process.env.FIRESTORE_EMULATOR_HOST ? 10000 : 5000;
+          let timer: NodeJS.Timeout;
+          const timeoutPromise = new Promise<never>((_, reject) => {
+            timer = setTimeout(() => reject(new Error('Firestore connection timeout (emulator inactive)')), timeoutMs);
+          });
+
+          // Attach immediate catch handler to prevent unhandled promise rejections
+          const seedPromise = seedInitialFirestoreData().catch((err) => {
+            console.warn('Firestore seeding notice:', err?.message || err);
+          });
+
+          await Promise.race([seedPromise, timeoutPromise]);
+          clearTimeout(timer!);
         } catch (err: any) {
           console.warn('Firestore notice: Switching to InMemoryDB mode for local development:', err?.message || err);
           this.useInMemoryFallback = true;
