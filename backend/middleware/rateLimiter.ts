@@ -21,7 +21,7 @@ export class SlidingWindowRateLimiter {
 
   constructor(options: RateLimitOptions = {}) {
     this.windowMs = options.windowMs || (process.env.RATE_LIMIT_WINDOW_MS ? parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) : 60 * 1000); // default 1 minute
-    this.maxRequests = options.maxRequests || (process.env.RATE_LIMIT_MAX_REQUESTS ? parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) : 60); // default 60 req/min
+    this.maxRequests = options.maxRequests || (process.env.RATE_LIMIT_MAX_REQUESTS ? parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) : 300); // default 300 req/min for public testing
     this.message = options.message || 'Too many requests, please try again later.';
 
     // Run garbage collection every 2 minutes
@@ -36,9 +36,14 @@ export class SlidingWindowRateLimiter {
     if (auth && auth.uid) {
       return `auth_${auth.uid}_${auth.institutionId || 'public'}`;
     }
+    const realIp = req.headers['x-real-ip'] || req.headers['x-vercel-forwarded-for'];
     const forwarded = req.headers['x-forwarded-for'];
-    const ip = typeof forwarded === 'string' ? forwarded.split(',')[0].trim() : req.socket.remoteAddress || 'unknown-ip';
-    return `ip_${ip}`;
+    const rawIp = typeof realIp === 'string'
+      ? realIp.trim()
+      : typeof forwarded === 'string'
+      ? forwarded.split(',')[0].trim()
+      : req.ip || req.socket?.remoteAddress || `session_${Math.random().toString(36).substring(2, 8)}`;
+    return `ip_${rawIp}`;
   }
 
   private cleanup() {

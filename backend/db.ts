@@ -35,12 +35,22 @@ export class FirestoreDatabaseService {
       await InMemoryDB.getInstance().ensureInitialized();
     } catch (_inMemErr) {}
 
+    // Check if running in a serverless environment (Vercel) without active emulator or GCP credentials
+    const isVercel = !!process.env.VERCEL || !!process.env.VERCEL_ENV || !!process.env.NOW_REGION;
+    const hasEmulator = !!process.env.FIRESTORE_EMULATOR_HOST;
+    const hasGcpCreds = !!process.env.GOOGLE_APPLICATION_CREDENTIALS || !!process.env.GCP_SA_KEY;
+
+    if (isVercel || (!hasEmulator && !hasGcpCreds)) {
+      this.useInMemoryFallback = true;
+      return;
+    }
+
     if (this.useInMemoryFallback) return;
 
     if (!this.initPromise) {
       this.initPromise = (async () => {
         try {
-          const timeoutMs = process.env.CI || process.env.FIRESTORE_EMULATOR_HOST ? 10000 : 5000;
+          const timeoutMs = process.env.CI || process.env.FIRESTORE_EMULATOR_HOST ? 10000 : 2000;
           let timer: NodeJS.Timeout;
           const timeoutPromise = new Promise<never>((_, reject) => {
             timer = setTimeout(() => reject(new Error('Firestore connection timeout (emulator inactive)')), timeoutMs);
