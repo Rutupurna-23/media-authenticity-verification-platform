@@ -13,8 +13,7 @@ The platform safeguards media integrity against deepfakes, unauthorized manipula
           React 19 Single Page Application (Vite 6, Tailwind CSS 4, Lucide Icons)
           ├── Public Verification Portal (Zero-Auth, Drag-and-Drop, Real-Time Hash)
           ├── Institutional Portal (Active Issuing Authority Dashboard & Media Signer)
-          ├── Admin Console (Keystore Management, Key Revocation, Audit Logs)
-          └── Architecture & Security Viewer (Cloud Functions & Data Flow Diagrams)
+          └── Admin Console (Keystore Management, Key Revocation & Developer Architecture Spec)
                                        │
                                        ▼ (HTTPS / JSON / Multipart)
                                 [ INGRESS TIER ]
