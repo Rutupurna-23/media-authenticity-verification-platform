@@ -82,6 +82,12 @@ export default function App() {
     }
   }, [isAuthenticated, userRole, selectedInstitutionId]);
 
+  useEffect(() => {
+    if (currentTab === 'architecture' && userRole !== 'SYSTEM_ADMIN') {
+      setCurrentTab('verify');
+    }
+  }, [userRole, currentTab]);
+
   const handleLoginSuccess = (role: UserRole, email: string, name: string, institutionId?: string) => {
     setUserRole(role);
     setUserEmail(email);

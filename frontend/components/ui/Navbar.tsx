@@ -30,16 +30,15 @@ export const Navbar: React.FC<NavbarProps> = ({
     { id: 'verify' as const, label: 'Public Verification', icon: Search },
     { id: 'issuer' as const, label: 'Institutional Issuer', icon: Building2 },
     { id: 'admin' as const, label: 'System Admin', icon: Lock },
-    { id: 'architecture' as const, label: 'Functions & Architecture', icon: Cpu },
   ];
 
   const handleTabClick = (tabId: 'verify' | 'issuer' | 'admin' | 'architecture') => {
     setTab(tabId);
-    if (tabId === 'issuer' && userRole === 'PUBLIC_RECIPIENT') {
+    if (tabId === 'issuer') {
       setUserRole('INSTITUTIONAL_ISSUER');
-    } else if (tabId === 'admin' && userRole === 'PUBLIC_RECIPIENT') {
+    } else if (tabId === 'admin') {
       setUserRole('SYSTEM_ADMIN');
-    } else if (tabId === 'verify' && (userRole === 'INSTITUTIONAL_ISSUER' || userRole === 'SYSTEM_ADMIN')) {
+    } else if (tabId === 'verify') {
       setUserRole('PUBLIC_RECIPIENT');
     }
   };
@@ -58,28 +57,28 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <header className="glass-surface border-b border-slate-800 text-slate-100 sticky top-0 z-50 shadow-lg shadow-slate-950/40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 gap-4">
           {/* Brand Logo & Title */}
           <motion.div
-            className="flex items-center space-x-3 cursor-pointer group"
+            className="flex items-center space-x-3 cursor-pointer group shrink-0"
             onClick={() => handleTabClick('verify')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/25 animate-pulse-glow group-hover:shadow-cyan-400/40 transition-all duration-300">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-cyan-500/25 animate-pulse-glow group-hover:shadow-cyan-400/40 transition-all duration-300 shrink-0">
               <ShieldCheck className="w-6 h-6 text-white transition-transform group-hover:rotate-6 duration-300" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-slate-100 to-cyan-300 bg-clip-text text-transparent font-heading">
+                <span className="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-slate-100 to-cyan-300 bg-clip-text text-transparent font-heading whitespace-nowrap">
                   Truth<span className="text-cyan-400">Seal</span>
                 </span>
-                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-700/60 shadow-inner flex items-center gap-1">
+                <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-cyan-950/80 text-cyan-300 border border-cyan-700/60 shadow-inner flex items-center gap-1 whitespace-nowrap">
                   <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping inline-block" />
                   Authenticity Engine
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium">Institutional Cryptographic Provenance Platform</p>
+              <p className="text-[11px] text-slate-400 font-medium whitespace-nowrap">Institutional Cryptographic Provenance Platform</p>
             </div>
           </motion.div>
 
@@ -93,7 +92,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                   key={tab.id}
                   id={`nav-tab-${tab.id}`}
                   onClick={() => handleTabClick(tab.id)}
-                  className={`relative px-3.5 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center space-x-1.5 ${
+                  className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 flex items-center space-x-2 whitespace-nowrap shrink-0 ${
                     isActive ? 'text-cyan-300 font-semibold' : 'text-slate-300 hover:text-white hover:bg-slate-800/50'
                   }`}
                 >
@@ -104,9 +103,9 @@ export const Navbar: React.FC<NavbarProps> = ({
                       transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                     />
                   )}
-                  <span className="relative z-10 flex items-center space-x-1.5">
-                    <Icon className={`w-4 h-4 transition-transform duration-200 ${isActive ? 'text-cyan-400 scale-110' : ''}`} />
-                    <span>{tab.label}</span>
+                  <span className="relative z-10 flex items-center space-x-2 whitespace-nowrap">
+                    <Icon className={`w-4 h-4 shrink-0 transition-transform duration-200 ${isActive ? 'text-cyan-400 scale-110' : ''}`} />
+                    <span className="whitespace-nowrap">{tab.label}</span>
                   </span>
                 </button>
               );

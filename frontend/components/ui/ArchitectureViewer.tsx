@@ -21,9 +21,15 @@ export const ArchitectureViewer: React.FC = () => {
     <div className="max-w-6xl mx-auto space-y-8">
       {/* Header Banner */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl space-y-3">
-        <div className="flex items-center space-x-2">
-          <Cpu className="w-5 h-5 text-cyan-400" />
-          <span className="text-xs font-mono uppercase tracking-wider text-slate-400">Backend Architecture & Cloud Functions</span>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Cpu className="w-5 h-5 text-cyan-400" />
+            <span className="text-xs font-mono uppercase tracking-wider text-slate-400">Backend Architecture & Cloud Functions</span>
+          </div>
+          <span className="text-[10px] font-mono font-bold uppercase tracking-widest px-2.5 py-1 rounded-full bg-cyan-950/90 text-cyan-300 border border-cyan-700/80 shadow-inner flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping inline-block" />
+            Developer Mode
+          </span>
         </div>
         <h1 className="text-2xl font-bold text-white tracking-tight">Firebase Cloud Functions & Zero-Trust Security Specification</h1>
         <p className="text-xs text-slate-300 max-w-3xl leading-relaxed">
