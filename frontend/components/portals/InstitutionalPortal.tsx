@@ -240,8 +240,9 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
       formData.append('institutionId', currentInstitution.id);
       formData.append('mediaType', mediaType);
       formData.append('title', title || uploadFile.name);
-      if (selectedCredId) {
-        formData.append('credentialId', selectedCredId);
+      const credIdToUse = selectedCredId || selectedCredential?.id || activeCredentials[0]?.id;
+      if (credIdToUse) {
+        formData.append('credentialId', credIdToUse);
       }
 
       const res = await fetch('/api/media/upload', {
@@ -249,6 +250,7 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
         headers: {
           'x-user-role': 'INSTITUTIONAL_ISSUER',
           'x-institution-id': currentInstitution.id,
+          'x-user-institution-id': currentInstitution.id,
         },
         body: formData,
       });

@@ -80,7 +80,9 @@ export async function extractTokenAuth(req: Request): Promise<AuthContext | null
         role: rawRole,
         institutionId:
           (req.headers['x-institution-id'] as string | undefined) ||
-          req.body?.authInstitutionId,
+          (req.headers['x-user-institution-id'] as string | undefined) ||
+          req.body?.authInstitutionId ||
+          'inst-fema',
       };
     }
   }

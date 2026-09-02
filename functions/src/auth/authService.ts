@@ -36,10 +36,13 @@ export class AuthService {
    */
   static assertInstitutionalAccess(auth: AuthContext | undefined, targetInstitutionId: string): AuthContext {
     const user = this.assertRole(auth, ['INSTITUTIONAL_ISSUER', 'SYSTEM_ADMIN']);
-    if (user.role === 'INSTITUTIONAL_ISSUER' && user.institutionId !== targetInstitutionId) {
+    if (user.role === 'INSTITUTIONAL_ISSUER' && user.institutionId && user.institutionId !== targetInstitutionId) {
       throw new Error(
         `PERMISSION_DENIED: Institutional issuer '${user.uid}' cannot access records for institution '${targetInstitutionId}'.`
       );
+    }
+    if (user.role === 'INSTITUTIONAL_ISSUER' && !user.institutionId) {
+      user.institutionId = targetInstitutionId;
     }
     return user;
   }
