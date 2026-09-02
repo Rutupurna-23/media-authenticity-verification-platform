@@ -270,10 +270,15 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
         }
         let serverError = '';
         try {
-          const errJson = await res.json();
-          serverError = errJson.error || errJson.message || '';
+          const resText = await res.text();
+          try {
+            const errJson = JSON.parse(resText);
+            serverError = errJson.error || errJson.message || '';
+          } catch (_e) {
+            serverError = resText.substring(0, 100);
+          }
         } catch (_e) {}
-        throw new Error(serverError || `Upload request returned HTTP status ${res.status}`);
+        throw new Error(serverError || `Upload failed with status code ${res.status}`);
       }
 
       const createdRecord: MediaRecord = await res.json();

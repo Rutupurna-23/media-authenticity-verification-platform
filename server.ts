@@ -417,10 +417,17 @@ export async function createApp(): Promise<express.Express> {
   app.post(
     '/api/media/upload',
     rateLimiter.middleware(),
-    upload.single('file'),
+    (req: Request, res: Response, next: NextFunction) => {
+      upload.single('file')(req, res, (err: any) => {
+        if (err) {
+          return res.status(400).json({ error: `INVALID_ARGUMENT: File upload error - ${err.message}` });
+        }
+        next();
+      });
+    },
     requireAuth,
     requireRole(['INSTITUTIONAL_ISSUER', 'SYSTEM_ADMIN']),
-    async (req, res) => {
+    async (req: Request, res: Response) => {
       try {
         const auth = req.auth;
         const file = req.file;
@@ -466,8 +473,9 @@ export async function createApp(): Promise<express.Express> {
 
         res.status(201).json(record);
       } catch (err: any) {
+        console.error('[Upload Error]', err);
         const isForbidden = err.message?.includes('PERMISSION_DENIED');
-        res.status(isForbidden ? 403 : 400).json({ error: err.message });
+        res.status(isForbidden ? 403 : 400).json({ error: err.message || 'Media upload failed' });
       }
     }
   );
