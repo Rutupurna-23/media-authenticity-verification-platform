@@ -167,8 +167,13 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
   const selectedCredential =
     (selectedCredId ? institutionCredentials.find((c) => c.id === selectedCredId) : null) ||
     activeAuthorityData.credential ||
+    activeCredentials.find((c) => c.status === 'ACTIVE') ||
     activeCredentials[0] ||
+    institutionCredentials.find((c) => c.status === 'ACTIVE') ||
     institutionCredentials[0] ||
+    credentials.find((c) => (c.institutionId === currentInstitution?.id || c.institutionId === selectedInstitutionId) && c.status === 'ACTIVE') ||
+    credentials.find((c) => c.status === 'ACTIVE') ||
+    credentials[0] ||
     null;
 
   // Process and compute SHA-256 digest for selected file
@@ -340,10 +345,18 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
   };
 
   const getAuthorityTrustState = () => {
-    if (!selectedCredential) return 'NO_CREDENTIAL';
-    if (selectedCredential.status === 'REVOKED') return 'REVOKED';
-    if (selectedCredential.status === 'EXPIRED') return 'EXPIRED';
-    if (selectedCredential.status === 'ACTIVE') return 'ACTIVE';
+    if (selectedCredential) {
+      if (selectedCredential.status === 'REVOKED') return 'REVOKED';
+      if (selectedCredential.status === 'EXPIRED') return 'EXPIRED';
+      if (selectedCredential.status === 'ACTIVE') return 'ACTIVE';
+    }
+    if (
+      activeCredentials.length > 0 ||
+      institutionCredentials.some((c) => c.status === 'ACTIVE') ||
+      credentials.some((c) => c.status === 'ACTIVE')
+    ) {
+      return 'ACTIVE';
+    }
     return 'NO_CREDENTIAL';
   };
 
