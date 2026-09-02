@@ -21,6 +21,7 @@ import { MediaType } from './types.js';
 import { logger } from './backend/utils/logger.js';
 import { createRateLimiter } from './backend/middleware/rateLimiter.js';
 import { validateConfig } from './backend/config/envValidator.js';
+import { sendApiError } from './backend/utils/apiError.js';
 
 import sihAuthRoutes from './backend/sih/routes/authRoutes.js';
 import sihSealRoutes from './backend/sih/routes/sealRoutes.js';
@@ -472,9 +473,17 @@ export async function createApp(): Promise<express.Express> {
 
         res.status(201).json(record);
       } catch (err: any) {
-        console.error('[Upload Error]', err);
-        const isForbidden = err.message?.includes('PERMISSION_DENIED');
-        res.status(isForbidden ? 403 : 400).json({ error: err.message || 'Media upload failed' });
+        const msg = err.message || 'Media upload failed';
+        if (msg.includes('PERMISSION_DENIED')) {
+          return sendApiError(res, 403, 'PERMISSION_DENIED', msg);
+        }
+        if (msg.includes('FILE_TYPE_MISMATCH')) {
+          return sendApiError(res, 400, 'FILE_TYPE_MISMATCH', msg);
+        }
+        if (msg.includes('SECURITY_ERROR')) {
+          return sendApiError(res, 400, 'MAGIC_BYTES_REJECTED', msg);
+        }
+        return sendApiError(res, 400, 'INVALID_ARGUMENT', msg);
       }
     }
   );
@@ -496,9 +505,7 @@ export async function createApp(): Promise<express.Express> {
           : auth?.institutionId || req.body.institutionId;
 
         if (!credentialId || !institutionId || (!mediaRecordId && !mediaHash)) {
-          return res.status(400).json({
-            error: 'INVALID_ARGUMENT: credentialId, institutionId, and (mediaRecordId or mediaHash) are required.',
-          });
+          return sendApiError(res, 400, 'INVALID_ARGUMENT', 'credentialId, institutionId, and (mediaRecordId or mediaHash) are required.');
         }
 
         const signResult = await signMediaHandler(
@@ -525,9 +532,23 @@ export async function createApp(): Promise<express.Express> {
           ...signResult,
         });
       } catch (err: any) {
-        const isForbidden = err.message?.includes('PERMISSION_DENIED');
-        const isPrecondition = err.message?.includes('FAILED_PRECONDITION');
-        res.status(isForbidden ? 403 : isPrecondition ? 412 : 400).json({ error: err.message });
+        const msg = err.message || 'Media signing failed';
+        if (msg.includes('CREDENTIAL_REVOKED')) {
+          return sendApiError(res, 409, 'CREDENTIAL_REVOKED', msg);
+        }
+        if (msg.includes('CREDENTIAL_EXPIRED')) {
+          return sendApiError(res, 409, 'CREDENTIAL_EXPIRED', msg);
+        }
+        if (msg.includes('CREDENTIAL_NOT_ACTIVE')) {
+          return sendApiError(res, 409, 'CREDENTIAL_NOT_ACTIVE', msg);
+        }
+        if (msg.includes('PERMISSION_DENIED')) {
+          return sendApiError(res, 403, 'PERMISSION_DENIED', msg);
+        }
+        if (msg.includes('NOT_FOUND')) {
+          return sendApiError(res, 404, 'RESOURCE_NOT_FOUND', msg);
+        }
+        return sendApiError(res, 400, 'INVALID_ARGUMENT', msg);
       }
     }
   );

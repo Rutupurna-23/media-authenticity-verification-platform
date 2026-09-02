@@ -65,6 +65,7 @@ const testFiles = [
   join(process.cwd(), 'tests', 'firestore.test.ts'),
   join(process.cwd(), 'tests', 'bugfixes.test.ts'),
   join(process.cwd(), 'tests', 'activeAuthority.test.ts'),
+  join(process.cwd(), 'tests', 'regressions.test.ts'),
 ];
 
 let overallExitCode = 0;

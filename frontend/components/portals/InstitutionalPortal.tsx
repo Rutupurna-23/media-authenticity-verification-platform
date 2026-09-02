@@ -480,12 +480,12 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
 
                 {trustState === 'NO_CREDENTIAL' && (
                   <div className="space-y-1">
-                    <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-slate-950/90 border border-slate-700/80 text-slate-400 text-xs font-mono font-semibold">
-                      <span className="w-2 h-2 rounded-full bg-slate-500" />
-                      <span>● NO ACTIVE CREDENTIAL</span>
+                    <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-950/80 border border-amber-800/80 text-amber-300 text-xs font-mono font-semibold">
+                      <span className="w-2 h-2 rounded-full bg-amber-400" />
+                      <span>● CREDENTIAL UNCONFIGURED</span>
                     </div>
-                    <p className="text-[11px] text-amber-400/90 font-mono italic pl-1">
-                      Contact System Admin to obtain an issuing credential.
+                    <p className="text-[11px] text-amber-300/90 font-mono italic pl-1">
+                      Action Required: Contact System Admin to configure an active issuing credential.
                     </p>
                   </div>
                 )}

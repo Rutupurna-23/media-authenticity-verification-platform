@@ -86,7 +86,10 @@ export class MediaStorageService {
     if (params.fileBuffer.length >= 4) {
       const isPE = params.fileBuffer[0] === 0x4d && params.fileBuffer[1] === 0x5a; // MZ header
       const isELF = params.fileBuffer[0] === 0x7f && params.fileBuffer[1] === 0x45 && params.fileBuffer[2] === 0x4c && params.fileBuffer[3] === 0x46; // \x7fELF
-      if (isPE || isELF) {
+      const isMachO =
+        (params.fileBuffer[0] === 0xfe && params.fileBuffer[1] === 0xed && params.fileBuffer[2] === 0xfa && params.fileBuffer[3] === 0xce) ||
+        (params.fileBuffer[0] === 0xcf && params.fileBuffer[1] === 0xfa && params.fileBuffer[2] === 0xed && params.fileBuffer[3] === 0xfe);
+      if (isPE || isELF || isMachO) {
         throw new Error('SECURITY_ERROR: Disguised binary executable payload detected and rejected.');
       }
     }

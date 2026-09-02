@@ -36,6 +36,12 @@ export interface SignMediaResult {
 const ALLOWED_MEDIA_TYPES: MediaType[] = ['AUDIO', 'VIDEO', 'NOTICE', 'EMERGENCY'];
 
 const MIME_TYPE_MAP: Record<string, MediaType> = {
+  'image/jpeg': 'NOTICE',
+  'image/jpg': 'NOTICE',
+  'image/png': 'NOTICE',
+  'image/webp': 'NOTICE',
+  'image/gif': 'NOTICE',
+  'image/svg+xml': 'NOTICE',
   'audio/mpeg': 'AUDIO',
   'audio/wav': 'AUDIO',
   'audio/mp3': 'AUDIO',
@@ -63,9 +69,8 @@ export class MediaService {
 
     if (mimeType && MIME_TYPE_MAP[mimeType.toLowerCase()]) {
       const detected = MIME_TYPE_MAP[mimeType.toLowerCase()];
-      // Allow general notices or emergencies
-      if (detected !== mediaType && mediaType !== 'EMERGENCY') {
-        // Warning or soft check: ensure it's not completely incompatible (e.g. video sent as audio)
+      if (detected !== mediaType && mediaType !== 'EMERGENCY' && mediaType !== 'NOTICE') {
+        throw new Error(`FILE_TYPE_MISMATCH: Uploaded file mime type '${mimeType}' is incompatible with declared category '${mediaType}'. Expected: ${detected}`);
       }
     }
   }
@@ -168,10 +173,14 @@ export class MediaService {
     }
 
     // 3. Check credential status is ACTIVE
+    if (credential.status === 'REVOKED') {
+      throw new Error(`CREDENTIAL_REVOKED: Cannot sign media with revoked credential '${params.credentialId}'.`);
+    }
+    if (credential.status === 'EXPIRED') {
+      throw new Error(`CREDENTIAL_EXPIRED: Cannot sign media with expired credential '${params.credentialId}'.`);
+    }
     if (credential.status !== 'ACTIVE') {
-      throw new Error(
-        `FAILED_PRECONDITION: Cannot sign media with non-active credential. Status is '${credential.status}'.`
-      );
+      throw new Error(`CREDENTIAL_NOT_ACTIVE: Cannot sign media with non-active credential '${params.credentialId}'. Current status: '${credential.status}'.`);
     }
 
     // Fetch or locate media record
