@@ -242,23 +242,22 @@ export const PublicVerification: React.FC<PublicVerificationProps> = ({ mediaRec
               <Upload className="w-4 h-4 text-cyan-400" />
               <span>1. Upload Media File to Verify</span>
             </label>
-            <motion.div
-              className="border-2 border-dashed border-slate-700 hover:border-cyan-500/70 bg-slate-950/60 rounded-xl p-5 text-center transition cursor-pointer relative group"
-              whileHover={{ scale: 1.01 }}
-              whileTap={{ scale: 0.99 }}
+            <label
+              htmlFor="file-verify-input"
+              className="border-2 border-dashed border-slate-700 hover:border-cyan-500/70 bg-slate-950/60 rounded-xl p-5 text-center transition cursor-pointer block relative group"
             >
               <input
                 id="file-verify-input"
                 type="file"
                 onChange={handleFileChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                className="sr-only"
               />
               <Upload className="w-8 h-8 mx-auto text-slate-500 group-hover:text-cyan-400 transition-colors duration-200 mb-2" />
               <p className="text-xs text-slate-300 font-medium truncate">
                 {selectedFile ? selectedFile.name : 'Drag & drop or browse media file'}
               </p>
               <p className="text-[11px] text-slate-500 mt-1">Audio (MP3/WAV), Video (MP4), Notice PDF, Emergency</p>
-            </motion.div>
+            </label>
             {calculatedClientHash && (
               <div className="bg-slate-950 p-2.5 rounded-lg border border-slate-800 text-[11px] font-mono text-slate-400 flex items-center justify-between">
                 <span className="text-slate-500">SHA-256:</span>

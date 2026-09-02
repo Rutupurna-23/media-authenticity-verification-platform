@@ -536,20 +536,12 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
                 )}
               </div>
 
-              <input
-                ref={fileInputRef}
-                id="input-issuer-file"
-                type="file"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-
-              <div
-                onClick={() => fileInputRef.current?.click()}
+              <label
+                htmlFor="input-issuer-file"
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-xl p-5 text-center transition cursor-pointer relative group ${
+                className={`border-2 border-dashed rounded-xl p-5 text-center transition cursor-pointer block relative group ${
                   isDragging
                     ? 'border-cyan-400 bg-cyan-950/40 ring-2 ring-cyan-500/50'
                     : uploadFile
@@ -557,6 +549,14 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
                     : 'border-slate-700 hover:border-cyan-500/70 bg-slate-950/60'
                 }`}
               >
+                <input
+                  ref={fileInputRef}
+                  id="input-issuer-file"
+                  type="file"
+                  onChange={handleFileChange}
+                  className="sr-only"
+                />
+
                 <Upload
                   className={`w-8 h-8 mx-auto mb-2 transition-colors duration-200 ${
                     uploadFile ? 'text-emerald-400' : 'text-slate-500 group-hover:text-cyan-400'
@@ -584,7 +584,7 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
                     <p className="text-[10px] text-slate-500 mt-1">Audio (MP3/WAV), Video (MP4), Notice PDF, Emergency Advisories</p>
                   </div>
                 )}
-              </div>
+              </label>
             </div>
 
             {calculatedHash && (
