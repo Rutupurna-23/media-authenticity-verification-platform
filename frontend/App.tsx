@@ -12,10 +12,12 @@ import { InstitutionalPortal } from './components/portals/InstitutionalPortal.js
 import { AdminConsole } from './components/portals/AdminConsole.js';
 import { ArchitectureViewer } from './components/ui/ArchitectureViewer.js';
 import { CyberBackground } from './components/ui/CyberBackground.js';
+import { LanguageProvider, useTranslation } from './i18n/LanguageContext.js';
 import { UserRole, Institution, Credential, MediaRecord, VerificationLog } from '../types.js';
 import { Shield } from 'lucide-react';
 
-export default function App() {
+function AppContent() {
+  const { t } = useTranslation();
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userEmail, setUserEmail] = useState<string>('');
   const [userName, setUserName] = useState<string>('');
@@ -217,24 +219,32 @@ export default function App() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-slate-500">
             <div className="flex items-center space-x-3">
               <Shield className="w-4 h-4 text-cyan-400" />
-              <span className="font-mono text-slate-300 font-semibold">TruthSeal Platform</span>
+              <span className="font-mono text-slate-300 font-semibold">{t('footer.truthSeal')}</span>
               <span>&bull;</span>
               <span className="text-[11px] text-emerald-400 font-mono flex items-center space-x-1">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span>4 Cloud Functions Active</span>
+                <span>{t('footer.cloudFunctions')}</span>
               </span>
             </div>
 
             <div className="flex items-center space-x-4 font-mono text-[11px]">
-              <span className="text-slate-400">ABAC Rules Enforced</span>
+              <span className="text-slate-400">{t('footer.abacEnforced')}</span>
               <span>&bull;</span>
-              <span className="text-slate-400">GCP KMS Ready</span>
+              <span className="text-slate-400">{t('footer.gcpKmsReady')}</span>
               <span>&bull;</span>
-              <span className="text-cyan-400">Port 3000 Ingress</span>
+              <span className="text-cyan-400">{t('footer.portIngress')}</span>
             </div>
           </div>
         </footer>
       </div>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <AppContent />
+    </LanguageProvider>
   );
 }

@@ -66,6 +66,7 @@ const testFiles = [
   join(process.cwd(), 'tests', 'bugfixes.test.ts'),
   join(process.cwd(), 'tests', 'activeAuthority.test.ts'),
   join(process.cwd(), 'tests', 'regressions.test.ts'),
+  join(process.cwd(), 'tests', 'i18n.test.ts'),
 ];
 
 let overallExitCode = 0;

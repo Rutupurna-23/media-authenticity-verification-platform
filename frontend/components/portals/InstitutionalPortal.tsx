@@ -17,6 +17,7 @@ import {
   Hash,
 } from 'lucide-react';
 import { Institution, Credential, MediaRecord, MediaType } from '../../../types.js';
+import { useTranslation } from '../../i18n/LanguageContext.js';
 
 interface InstitutionalPortalProps {
   institutions: Institution[];
@@ -35,6 +36,7 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
   mediaRecords,
   onRefresh,
 }) => {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [authorityLoading, setAuthorityLoading] = useState(true);
@@ -379,11 +381,11 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
         <div className="space-y-1">
           <div className="flex items-center space-x-2">
             <Building2 className="w-5 h-5 text-indigo-400" />
-            <span className="text-xs font-mono uppercase tracking-wider text-slate-400">Institutional Issuer Portal</span>
+            <span className="text-xs font-mono uppercase tracking-wider text-slate-400">{t('issuer.portalTitle')}</span>
           </div>
           <h1 className="text-2xl font-bold text-white tracking-tight">{currentInstitution?.name || 'Institution Workspace'}</h1>
           <p className="text-xs text-slate-400 font-mono">
-            Domain: <span className="text-cyan-400">{currentInstitution?.domain}</span> &bull; Status:{' '}
+            Domain: <span className="text-cyan-400">{currentInstitution?.domain}</span> &bull; {t('common.status')}:{' '}
             <span className="text-emerald-400">{currentInstitution?.status}</span> &bull; Institution ID: {currentInstitution?.id}
           </p>
         </div>
@@ -393,10 +395,10 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
           <div className="flex items-center justify-between">
             <label className="text-[11px] font-mono font-bold uppercase tracking-wider text-slate-400 flex items-center space-x-1.5">
               <ShieldCheck className="w-3.5 h-3.5 text-cyan-400" />
-              <span>ACTIVE ISSUING AUTHORITY</span>
+              <span>{t('issuer.activeAuthority')}</span>
             </label>
             <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/80 px-2 py-0.5 rounded-full border border-cyan-800/60">
-              KMS / HSM Enclave
+              {t('issuer.kmsEnclave')}
             </span>
           </div>
 

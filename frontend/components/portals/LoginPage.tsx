@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ShieldCheck, Lock, Mail, Building2, UserCheck, KeyRound, ArrowRight, AlertCircle, Sparkles } from 'lucide-react';
 import { UserRole } from '../../../types.js';
+import { useTranslation } from '../../i18n/LanguageContext.js';
 
 interface LoginPageProps {
   onLoginSuccess: (role: UserRole, email: string, name: string, institutionId?: string) => void;
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
+  const { t } = useTranslation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [selectedRole, setSelectedRole] = useState<UserRole>('INSTITUTIONAL_ISSUER');
@@ -72,46 +74,46 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             <ShieldCheck className="w-9 h-9 text-white" />
           </motion.div>
           <h2 className="text-2xl font-extrabold tracking-tight text-white font-heading">
-            Truth<span className="text-cyan-400">Seal</span> Authentication
+            Truth<span className="text-cyan-400">Seal</span> {t('nav.login')}
           </h2>
           <p className="text-xs text-slate-400 mt-1 font-mono">
-            Cryptographic Media Authenticity & Provenance Engine
+            {t('login.subtitle')}
           </p>
         </div>
 
         {/* Quick Demo Role Selector Cards */}
         <div className="mb-6 relative z-10">
           <label className="block text-xs font-mono text-slate-400 uppercase tracking-wider mb-2">
-            Quick Demo Login Portal
+            {t('login.selectRole')}
           </label>
           <div className="grid grid-cols-3 gap-2">
             <button
               type="button"
               onClick={() => handleQuickDemoLogin('INSTITUTIONAL_ISSUER', 'issuer@truthseal.io', 'Dr. Rajesh Kumar')}
-              className="flex flex-col items-center p-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800/80 hover:border-cyan-500/50 transition-all text-center group"
+              className="flex flex-col items-center p-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800/80 hover:border-cyan-500/50 transition-all text-center group cursor-pointer"
             >
               <Building2 className="w-5 h-5 text-cyan-400 mb-1 group-hover:scale-110 transition-transform" />
-              <span className="text-[11px] font-semibold text-slate-200">Issuer</span>
+              <span className="text-[11px] font-semibold text-slate-200">{t('nav.institutionalIssuer')}</span>
               <span className="text-[9px] text-slate-400 font-mono mt-0.5">FEMA Portal</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleQuickDemoLogin('SYSTEM_ADMIN', 'admin@truthseal.io', 'Admin Root')}
-              className="flex flex-col items-center p-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800/80 hover:border-purple-500/50 transition-all text-center group"
+              className="flex flex-col items-center p-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800/80 hover:border-purple-500/50 transition-all text-center group cursor-pointer"
             >
               <Lock className="w-5 h-5 text-purple-400 mb-1 group-hover:scale-110 transition-transform" />
-              <span className="text-[11px] font-semibold text-slate-200">Admin</span>
+              <span className="text-[11px] font-semibold text-slate-200">{t('nav.systemAdmin')}</span>
               <span className="text-[9px] text-slate-400 font-mono mt-0.5">KMS Console</span>
             </button>
 
             <button
               type="button"
               onClick={() => handleQuickDemoLogin('PUBLIC_RECIPIENT', 'verifier@truthseal.io', 'Public Verifier')}
-              className="flex flex-col items-center p-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800/80 hover:border-emerald-500/50 transition-all text-center group"
+              className="flex flex-col items-center p-2.5 rounded-xl border border-slate-800 bg-slate-900/60 hover:bg-slate-800/80 hover:border-emerald-500/50 transition-all text-center group cursor-pointer"
             >
               <UserCheck className="w-5 h-5 text-emerald-400 mb-1 group-hover:scale-110 transition-transform" />
-              <span className="text-[11px] font-semibold text-slate-200">Verifier</span>
+              <span className="text-[11px] font-semibold text-slate-200">{t('nav.publicVerification')}</span>
               <span className="text-[9px] text-slate-400 font-mono mt-0.5">Public Mode</span>
             </button>
           </div>

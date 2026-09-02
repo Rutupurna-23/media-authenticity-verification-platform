@@ -20,6 +20,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { VerificationResultPayload, MediaRecord, MediaType } from '../../../types.js';
+import { useTranslation } from '../../i18n/LanguageContext.js';
 
 interface PublicVerificationProps {
   mediaRecords: MediaRecord[];
@@ -27,6 +28,7 @@ interface PublicVerificationProps {
 }
 
 export const PublicVerification: React.FC<PublicVerificationProps> = ({ mediaRecords, onRefresh }) => {
+  const { t } = useTranslation();
   const [hashInput, setHashInput] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [calculatedClientHash, setCalculatedClientHash] = useState('');
@@ -212,18 +214,17 @@ export const PublicVerification: React.FC<PublicVerificationProps> = ({ mediaRec
             <span>TruthSeal &bull; Public Zero-Trust Verification Gateway</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight font-heading">
-            Verify Media Provenance with <span className="text-cyan-400">TruthSeal</span>
+            {t('verification.title')}
           </h1>
           <p className="text-sm sm:text-base text-slate-300 max-w-3xl leading-relaxed">
-            Validate whether official audio, video, broadcast notices, and emergency advisories were authentic and
-            unaltered by cross-referencing institutional KMS signatures in TruthSeal's cryptographic vault.
+            {t('verification.subtitle')}
           </p>
         </div>
       </motion.div>
 
       {/* Verification Input Box */}
       <motion.div
-        className="glass-surface border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6 relative overflow-hidden"
+        className="glass-surface border border-slate-800 rounded-2xl p-6 sm:p-8 shadow-xl space-y-6 relative overflow-hidden"
         initial={{ opacity: 0, scale: 0.98 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.4, delay: 0.1 }}
