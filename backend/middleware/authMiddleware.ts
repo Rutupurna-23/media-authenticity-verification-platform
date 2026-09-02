@@ -22,9 +22,11 @@ function isValidRole(value: unknown): value is UserRole {
 }
 
 function isDevAuthSimulationEnabled(): boolean {
-  // Header/body auth simulation is allowed only outside production.
-  // Set NODE_ENV=production in deployed environments.
-  return process.env.NODE_ENV !== 'production';
+  // Allow header/body auth simulation for interactive demo unless explicitly disabled by environment
+  if (process.env.DISABLE_DEMO_AUTH === 'true') {
+    return false;
+  }
+  return true;
 }
 
 export async function extractTokenAuth(req: Request): Promise<AuthContext | null> {
@@ -111,7 +113,7 @@ export async function requireAuth(
   // In production, protected endpoints must have a real Firebase
   // authentication token. Anonymous/public callers cannot satisfy requireAuth.
   if (
-    process.env.NODE_ENV === 'production' &&
+    process.env.DISABLE_DEMO_AUTH === 'true' &&
     auth.uid === 'anonymous'
   ) {
     return res.status(401).json({
