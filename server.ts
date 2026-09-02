@@ -4,7 +4,6 @@ import fs from 'fs';
 import crypto from 'crypto';
 import multer from 'multer';
 import { performance } from 'perf_hooks';
-import { createServer as createViteServer } from 'vite';
 import { db } from './backend/db.js';
 import {
   uploadMediaHandler,
@@ -736,6 +735,7 @@ export async function createApp(): Promise<express.Express> {
   // 10. VITE MIDDLEWARE SETUP
   // ==========================================
   if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+    const { createServer: createViteServer } = await import('vite');
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: 'spa',
