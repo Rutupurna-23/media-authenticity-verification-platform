@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Upload,
   Building2,
@@ -35,6 +35,8 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
   mediaRecords,
   onRefresh,
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
   const [authorityLoading, setAuthorityLoading] = useState(true);
   const [authorityError, setAuthorityError] = useState<string | null>(null);
   const [activeAuthorityData, setActiveAuthorityData] = useState<{
@@ -46,6 +48,16 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
     credential: null,
     credentials: [],
   });
+
+  const [uploadedRecords, setUploadedRecords] = useState<MediaRecord[]>([]);
+  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [mediaType, setMediaType] = useState<MediaType>('NOTICE');
+  const [title, setTitle] = useState('');
+  const [selectedCredId, setSelectedCredId] = useState<string>('');
+  const [calculatedHash, setCalculatedHash] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [signingRecordId, setSigningRecordId] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const fetchActiveAuthority = async () => {
     setAuthorityLoading(true);
@@ -121,17 +133,22 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
       : credentials.filter((c) => c.institutionId === currentInstitution.id);
 
   const activeCredentials = institutionCredentials.filter((c) => c.status === 'ACTIVE');
-  const institutionMedia = mediaRecords.filter((m) => m.institutionId === currentInstitution.id);
 
-  // Upload Form State
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
-  const [mediaType, setMediaType] = useState<MediaType>('NOTICE');
-  const [title, setTitle] = useState('');
-  const [selectedCredId, setSelectedCredId] = useState<string>('');
-  const [calculatedHash, setCalculatedHash] = useState('');
-  const [uploading, setUploading] = useState(false);
-  const [signingRecordId, setSigningRecordId] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  // Deduplicate and filter combined media records (server-fetched + locally uploaded)
+  const combinedMedia = [...uploadedRecords, ...mediaRecords];
+  const institutionMediaMap = new Map<string, MediaRecord>();
+  combinedMedia.forEach((m) => {
+    if (
+      !m.institutionId ||
+      m.institutionId === currentInstitution.id ||
+      m.institutionId === selectedInstitutionId
+    ) {
+      if (!institutionMediaMap.has(m.id)) {
+        institutionMediaMap.set(m.id, m);
+      }
+    }
+  });
+  const institutionMedia = Array.from(institutionMediaMap.values());
 
   // Synchronize selected credential when active authority or credentials change
   React.useEffect(() => {
@@ -249,6 +266,7 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
       }
 
       const createdRecord: MediaRecord = await res.json();
+      setUploadedRecords((prev) => [createdRecord, ...prev]);
       setFeedback({
         type: 'success',
         message: `Media uploaded successfully to '${createdRecord.storagePath}' with SHA-256: ${createdRecord.mediaHash.substring(0, 16)}...`,
