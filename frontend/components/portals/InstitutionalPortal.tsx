@@ -154,21 +154,55 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
     institutionCredentials[0] ||
     null;
 
-  // Compute SHA-256 preview
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setUploadFile(file);
+  // Process and compute SHA-256 digest for selected file
+  const processSelectedFile = async (file: File) => {
+    setUploadFile(file);
+    if (!title) {
       setTitle(file.name.replace(/\.[^/.]+$/, ''));
-      try {
-        const arrayBuffer = await file.arrayBuffer();
-        const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-        setCalculatedHash(hashHex);
-      } catch (err) {
-        console.error('Hash error:', err);
-      }
+    }
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest('SHA-256', arrayBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+      setCalculatedHash(hashHex);
+    } catch (err) {
+      console.error('Hash error:', err);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      processSelectedFile(e.target.files[0]);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      processSelectedFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleClearFile = () => {
+    setUploadFile(null);
+    setCalculatedHash('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -487,21 +521,69 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
 
           <form onSubmit={handleUploadMedia} className="space-y-4">
             <div>
-              <label className="text-xs font-semibold uppercase text-slate-400 block mb-1.5">
-                Select File (Audio, Video, Notice PDF, Emergency)
-              </label>
-              <div className="border-2 border-dashed border-slate-700 hover:border-cyan-500 bg-slate-950/60 rounded-xl p-4 text-center relative cursor-pointer">
-                <input
-                  id="input-issuer-file"
-                  type="file"
-                  onChange={handleFileChange}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-semibold uppercase text-slate-400">
+                  Select File (Audio, Video, Notice PDF, Emergency)
+                </label>
+                {uploadFile && (
+                  <button
+                    type="button"
+                    onClick={handleClearFile}
+                    className="text-[11px] text-cyan-400 hover:text-cyan-300 underline font-mono cursor-pointer"
+                  >
+                    Change file
+                  </button>
+                )}
+              </div>
+
+              <input
+                ref={fileInputRef}
+                id="input-issuer-file"
+                type="file"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`border-2 border-dashed rounded-xl p-5 text-center transition cursor-pointer relative group ${
+                  isDragging
+                    ? 'border-cyan-400 bg-cyan-950/40 ring-2 ring-cyan-500/50'
+                    : uploadFile
+                    ? 'border-emerald-500/60 bg-emerald-950/20'
+                    : 'border-slate-700 hover:border-cyan-500/70 bg-slate-950/60'
+                }`}
+              >
+                <Upload
+                  className={`w-8 h-8 mx-auto mb-2 transition-colors duration-200 ${
+                    uploadFile ? 'text-emerald-400' : 'text-slate-500 group-hover:text-cyan-400'
+                  }`}
                 />
-                <Upload className="w-6 h-6 mx-auto text-slate-400 mb-1" />
-                <p className="text-xs font-medium text-slate-200">
-                  {uploadFile ? uploadFile.name : 'Click to select media file or drop here'}
-                </p>
-                <p className="text-[10px] text-slate-500 mt-0.5">Files stored in media/institutions/{currentInstitution?.id}/</p>
+
+                {uploadFile ? (
+                  <div className="space-y-1">
+                    <p className="text-xs font-semibold text-emerald-300 flex items-center justify-center space-x-1.5 truncate px-2">
+                      <FileCheck className="w-4 h-4 text-emerald-400 shrink-0 inline" />
+                      <span className="truncate">{uploadFile.name}</span>
+                      <span className="text-[10px] text-slate-400 font-mono font-normal">
+                        ({(uploadFile.size / 1024).toFixed(1)} KB)
+                      </span>
+                    </p>
+                    <p className="text-[10px] text-slate-400 font-mono">
+                      Selected & ready to upload to <span className="text-cyan-400">media/institutions/{currentInstitution?.id}/</span>
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-xs font-medium text-slate-200">
+                      Click to select media file or drag & drop here
+                    </p>
+                    <p className="text-[10px] text-slate-500 mt-1">Audio (MP3/WAV), Video (MP4), Notice PDF, Emergency Advisories</p>
+                  </div>
+                )}
               </div>
             </div>
 
