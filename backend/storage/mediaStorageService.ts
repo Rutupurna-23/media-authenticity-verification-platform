@@ -1,6 +1,7 @@
 import path from 'path';
 import { adminStorage } from '../../functions/src/auth/firebaseAdmin.js';
 import { AuthService, AuthContext } from '../../functions/src/auth/authService.js';
+import { InMemoryDB } from '../backups/db.inmemory.backup.js';
 
 export interface StorageUploadParams {
   institutionId: string;
@@ -116,8 +117,7 @@ export class MediaStorageService {
         resumable: false,
       });
     } catch (_storageErr) {
-      // Fallback for local testing / offline mode when storage emulator is unavailable
-      const { InMemoryDB } = await import('../backups/db.inmemory.backup.js');
+      // Fallback for local testing / serverless offline mode when GCP bucket is uninitialized
       await InMemoryDB.getInstance().saveStorageFile(storagePath, params.fileBuffer, contentType, params.fileName);
     }
 
