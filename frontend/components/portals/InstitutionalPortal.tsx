@@ -268,8 +268,12 @@ export const InstitutionalPortal: React.FC<InstitutionalPortalProps> = ({
         if (res.status === 503) {
           throw new Error('Storage service temporarily degraded. Please try uploading again in a few moments.');
         }
-        const err = await res.json().catch(() => ({ error: 'Upload failed' }));
-        throw new Error(err.error || `Upload failed with status ${res.status}`);
+        let serverError = '';
+        try {
+          const errJson = await res.json();
+          serverError = errJson.error || errJson.message || '';
+        } catch (_e) {}
+        throw new Error(serverError || `Upload request returned HTTP status ${res.status}`);
       }
 
       const createdRecord: MediaRecord = await res.json();

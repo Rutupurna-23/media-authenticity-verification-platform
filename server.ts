@@ -83,7 +83,7 @@ export async function createApp(): Promise<express.Express> {
       ) {
         res.setHeader('Access-Control-Allow-Origin', origin);
         res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-user-role, x-institution-id, x-correlation-id');
+        res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-user-role, x-institution-id, x-user-institution-id, x-user-uid, x-user-email, x-correlation-id');
         res.setHeader('Access-Control-Allow-Credentials', 'true');
       }
     }
